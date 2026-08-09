@@ -1,5 +1,9 @@
 apply plugin: 'com.android.application'
 
+def buildTime = System.currentTimeMillis()
+def autoVersionCode = (buildTime / 1000).toInteger()
+def autoVersionName = new java.text.SimpleDateFormat("yy.MM.dd.HHmm").format(new Date(buildTime))
+
 android {
     namespace = "open.task.manager"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -7,8 +11,8 @@ android {
         applicationId "open.task.manager"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode autoVersionCode
+        versionName autoVersionName
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -16,10 +20,36 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        release {
+            if (System.getenv("RELEASE_STORE_PASSWORD") != null) {
+                storeFile file("../keystore/personal-release.p12")
+                storePassword System.getenv("RELEASE_STORE_PASSWORD")
+                keyAlias System.getenv("RELEASE_KEY_ALIAS")
+                keyPassword System.getenv("RELEASE_KEY_PASSWORD")
+            }
+        }
+        debug {
+            if (System.getenv("DEBUG_STORE_PASSWORD") != null) {
+                storeFile file("../keystore/personal-debug.p12")
+                storePassword System.getenv("DEBUG_STORE_PASSWORD")
+                keyAlias System.getenv("DEBUG_KEY_ALIAS")
+                keyPassword System.getenv("DEBUG_KEY_PASSWORD")
+            }
+        }
+    }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            if (System.getenv("RELEASE_STORE_PASSWORD") != null) {
+                signingConfig signingConfigs.release
+            }
+        }
+        debug {
+            if (System.getenv("DEBUG_STORE_PASSWORD") != null) {
+                signingConfig signingConfigs.debug
+            }
         }
     }
 }
