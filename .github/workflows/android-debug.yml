@@ -82,6 +82,9 @@ jobs:
           echo "${{ secrets.DEBUG_KEYSTORE_BASE64 }}" | base64 -d > keystore/personal-debug.p12
           
           APKSIGNER=$(find $ANDROID_HOME/build-tools -name apksigner | sort -r | head -n 1)
+          ZIPALIGN=$(find $ANDROID_HOME/build-tools -name zipalign | sort -r | head -n 1)
+          
+          $ZIPALIGN -p -f -v 4 OTM-Debug-Unsigned.apk OTM-Debug-Aligned.apk
           
           $APKSIGNER sign \
             --ks keystore/personal-debug.p12 \
@@ -89,7 +92,7 @@ jobs:
             --ks-pass "pass:${{ secrets.DEBUG_STORE_PASSWORD }}" \
             --key-pass "pass:${{ secrets.DEBUG_KEY_PASSWORD }}" \
             --out OTM-Debug-Build.apk \
-            OTM-Debug-Unsigned.apk
+            OTM-Debug-Aligned.apk
             
           rm -rf keystore
 

@@ -82,6 +82,9 @@ jobs:
           echo "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" | base64 -d > keystore/personal-release.p12
           
           APKSIGNER=$(find $ANDROID_HOME/build-tools -name apksigner | sort -r | head -n 1)
+          ZIPALIGN=$(find $ANDROID_HOME/build-tools -name zipalign | sort -r | head -n 1)
+          
+          $ZIPALIGN -p -f -v 4 OTM-Release-Unsigned.apk OTM-Release-Aligned.apk
           
           $APKSIGNER sign \
             --ks keystore/personal-release.p12 \
@@ -89,7 +92,7 @@ jobs:
             --ks-pass "pass:${{ secrets.RELEASE_STORE_PASSWORD }}" \
             --key-pass "pass:${{ secrets.RELEASE_KEY_PASSWORD }}" \
             --out OTM-Release-Build.apk \
-            OTM-Release-Unsigned.apk
+            OTM-Release-Aligned.apk
             
           rm -rf keystore
 
