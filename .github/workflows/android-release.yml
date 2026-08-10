@@ -10,6 +10,9 @@ on:
       - 'docs/**'
   workflow_dispatch:              
       
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -49,30 +52,51 @@ jobs:
         working-directory: ./android
         run: chmod +x gradlew
 
-      - name: Decode Keystore and Map Environment
-        working-directory: ./android
-        run: |
-          mkdir -p keystore
-          echo "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" | base64 -d > keystore/personal-release.p12
-          echo "RELEASE_STORE_PASSWORD=${{ secrets.RELEASE_STORE_PASSWORD }}" >> $GITHUB_ENV
-          echo "RELEASE_KEY_ALIAS=${{ secrets.RELEASE_KEY_ALIAS }}" >> $GITHUB_ENV
-          echo "RELEASE_KEY_PASSWORD=${{ secrets.RELEASE_KEY_PASSWORD }}" >> $GITHUB_ENV
-
-      - name: Build and Configure APK
+      - name: Build Unsigned APK
         working-directory: ./android
         run: |
           ./gradlew assembleRelease
-          mv app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/release/OTM-Release-Build.apk
-          echo "APK_PATH=android/app/build/outputs/apk/release/OTM-Release-Build.apk" >> $GITHUB_ENV
+          mv app/build/outputs/apk/release/app-release-unsigned.apk app/build/outputs/apk/release/OTM-Release-Unsigned.apk
+          echo "APK_PATH=android/app/build/outputs/apk/release/OTM-Release-Unsigned.apk" >> $GITHUB_ENV
 
-      - name: Upload APK
+      - name: Upload Unsigned APK
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
+          name: unsigned-release-apk
           path: ${{ env.APK_PATH }}
           archive: false
           retention-days: 1
 
-      - name: Cleanup Keystore
-        if: always()
-        working-directory: ./android
-        run: rm -f keystore/*.p12
+  sign:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Unsigned APK
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4
+        with:
+          name: unsigned-release-apk
+
+      - name: Decode Keystore and Sign
+        run: |
+          mkdir -p keystore
+          echo "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" | base64 -d > keystore/personal-release.p12
+          
+          APKSIGNER=$(find $ANDROID_HOME/build-tools -name apksigner | sort -r | head -n 1)
+          
+          $APKSIGNER sign \
+            --ks keystore/personal-release.p12 \
+            --ks-key-alias "${{ secrets.RELEASE_KEY_ALIAS }}" \
+            --ks-pass "pass:${{ secrets.RELEASE_STORE_PASSWORD }}" \
+            --key-pass "pass:${{ secrets.RELEASE_KEY_PASSWORD }}" \
+            --out OTM-Release-Build.apk \
+            OTM-Release-Unsigned.apk
+            
+          rm -rf keystore
+
+      - name: Upload Signed APK
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: signed-release-apk
+          path: OTM-Release-Build.apk
+          archive: false
+          retention-days: 1
