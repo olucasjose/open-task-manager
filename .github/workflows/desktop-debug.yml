@@ -52,13 +52,13 @@ jobs:
         run: pnpm install
 
       - name: build tauri app
-        uses: tauri-apps/tauri-action@fce9c6108b31ea247710505d3aaaa893ee6768d4 # v0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: pnpm tauri build ${{ matrix.args }}
+
+      - name: Upload Desktop Artifacts
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
         with:
-          tagName: app-v__VERSION__
-          releaseName: 'App v__VERSION__'
-          releaseBody: 'See the assets to download this version and install.'
-          releaseDraft: true
-          prerelease: false
-          args: ${{ matrix.args }}
+          name: open-task-manager-desktop-debug
+          path: |
+            src-tauri/target/debug/bundle/appimage/*.AppImage
+            src-tauri/target/debug/bundle/deb/*.deb
+          retention-days: 1
