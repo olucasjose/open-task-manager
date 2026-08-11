@@ -1,0 +1,64 @@
+name: 'Desktop Release Build'
+
+on:
+#  push:
+#    branches: [ "main", "rc-*" ]
+#    paths-ignore:
+#      - '**.md'      
+#      - '.gitignore'           
+#      - '.github/workflows/**' 
+#      - 'docs/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tauri-build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: 'ubuntu-24.04'
+            args: ''
+
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '22'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@f520eceda224fe1a4aed5a2a27a194379a409996 # v6
+        with:
+          version: 9
+
+      - name: install Rust stable
+        uses: dtolnay/rust-toolchain@6c977a6ca4077a0ceb28ffbe03f59d46e9ac8772 # master
+        with:
+          toolchain: stable
+
+      - name: install dependencies (ubuntu only)
+        if: matrix.platform == 'ubuntu-24.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - name: install frontend dependencies
+        run: pnpm install
+
+      - name: build tauri app
+        uses: tauri-apps/tauri-action@fce9c6108b31ea247710505d3aaaa893ee6768d4 # v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: app-v__VERSION__
+          releaseName: 'App v__VERSION__'
+          releaseBody: 'See the assets to download this version and install.'
+          releaseDraft: true
+          prerelease: false
+          args: ${{ matrix.args }}

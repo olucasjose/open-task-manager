@@ -1,13 +1,13 @@
 name: Android Release Build
 
 on:
-  push:
-    branches: [ "main", "rc-*" ]
-    paths-ignore:
-      - '**.md'      
-      - '.gitignore'           
-      - '.github/workflows/**' 
-      - 'docs/**'
+#  push:
+#    branches: [ "main", "rc-*" ]
+#    paths-ignore:
+#      - '**.md'      
+#      - '.gitignore'           
+#      - '.github/workflows/**' 
+#      - 'docs/**'
   workflow_dispatch:              
       
 permissions:

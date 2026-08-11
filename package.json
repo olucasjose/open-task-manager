@@ -7,18 +7,21 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "tauri": "tauri"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.0",
     "@capacitor/core": "^8.5.0",
     "@tailwindcss/vite": "^4.3.3",
+    "@tauri-apps/api": "^2.11.1",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "tailwindcss": "^4.3.3"
   },
   "devDependencies": {
     "@capacitor/cli": "^8.5.0",
+    "@tauri-apps/cli": "^2.11.4",
     "@types/node": "^24.13.3",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
