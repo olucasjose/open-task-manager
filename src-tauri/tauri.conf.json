@@ -7,7 +7,7 @@
     "frontendDist": "../dist",
     "devUrl": "http://localhost:1420",
     "beforeDevCommand": "pnpm dev",
-    "beforeBuildCommand": "node scripts/set-version.js && pnpm build"
+    "beforeBuildCommand": "pnpm build"
   },
   "app": {
     "windows": [
