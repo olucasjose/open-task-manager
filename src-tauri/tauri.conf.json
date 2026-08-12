@@ -1,6 +1,6 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-  "productName": "open-task-manager",
+  "productName": "Open Task Manager",
   "version": "0.1.0",
   "identifier": "open.task.manager",
   "build": {
