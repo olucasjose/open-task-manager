@@ -1,8 +1,8 @@
 name: Android Release Build
 
 on:
-#  push:
-#    branches: [ "main", "rc-*" ]
+  push:
+    branches: [ "main", "rc-*" ]
 #    paths-ignore:
 #      - '**.md'      
 #      - '.gitignore'           
