@@ -59,6 +59,6 @@ jobs:
         with:
           name: open-task-manager-desktop-debug
           path: |
-            src-tauri/target/debug/bundle/appimage/*.AppImage
             src-tauri/target/debug/bundle/deb/*.deb
+          archive: false
           retention-days: 1
