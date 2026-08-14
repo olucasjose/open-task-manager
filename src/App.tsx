@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { BookOpen } from 'lucide-react';
+import { BookOpen, CheckSquare, FileText, Map, Plus } from 'lucide-react';
 
 function App() {
   const [entries, setEntries] = useState([
@@ -7,6 +7,19 @@ function App() {
     { id: '2', title: 'Ler documentação do Tauri', type: 'task', isCompleted: true },
     { id: '3', title: 'Ideias para o novo app', type: 'note' }
   ]);
+  
+  const [isFabMenuOpen, setIsFabMenuOpen] = useState(false);
+
+  const handleCreate = (type: 'task' | 'note' | 'reasoningLine') => {
+    const newEntry = {
+      id: Date.now().toString(),
+      title: type === 'task' ? 'Nova Tarefa' : type === 'note' ? 'Nova Anotação' : 'Nova Linha de Raciocínio',
+      type,
+      isCompleted: false
+    };
+    setEntries([newEntry, ...entries]);
+    setIsFabMenuOpen(false);
+  };
 
   const toggleTask = (id: string) => {
     setEntries(entries.map(e => 
@@ -86,6 +99,55 @@ function App() {
         )}
       </main>
 
+      {/* FAB Overlay (escurece o fundo) */}
+      {isFabMenuOpen && (
+        <div 
+          className="fixed inset-0 z-40 bg-black/5 dark:bg-black/20" 
+          onClick={() => setIsFabMenuOpen(false)}
+        />
+      )}
+
+      {/* FAB Menu */}
+      <div className="fixed bottom-6 right-4 md:bottom-8 md:right-8 z-50 flex flex-col items-end gap-3">
+        {isFabMenuOpen && (
+          <div className="flex flex-col items-end gap-3 mb-2 animate-in fade-in slide-in-from-bottom-4 duration-200">
+            <button 
+              onClick={() => handleCreate('note')}
+              className="flex items-center gap-3 bg-white dark:bg-gray-800 px-4 py-3 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 text-gray-700 dark:text-gray-200 font-medium hover:bg-gray-50 dark:hover:bg-gray-700/50 active:scale-95 transition-all"
+            >
+              <span>Nova Anotação</span>
+              <div className="w-10 h-10 bg-indigo-50 dark:bg-indigo-500/20 rounded-full flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+                <FileText className="w-5 h-5" />
+              </div>
+            </button>
+            <button 
+              onClick={() => handleCreate('task')}
+              className="flex items-center gap-3 bg-white dark:bg-gray-800 px-4 py-3 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 text-gray-700 dark:text-gray-200 font-medium hover:bg-gray-50 dark:hover:bg-gray-700/50 active:scale-95 transition-all"
+            >
+              <span>Nova Tarefa</span>
+              <div className="w-10 h-10 bg-indigo-50 dark:bg-amber-500/20 rounded-full flex items-center justify-center text-indigo-600 dark:text-amber-400">
+                <CheckSquare className="w-5 h-5" />
+              </div>
+            </button>
+            <button 
+              onClick={() => handleCreate('reasoningLine')}
+              className="flex items-center gap-3 bg-white dark:bg-gray-800 px-4 py-3 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 text-gray-700 dark:text-gray-200 font-medium hover:bg-gray-50 dark:hover:bg-gray-700/50 active:scale-95 transition-all"
+            >
+              <span>Nova Linha de Raciocínio</span>
+              <div className="w-10 h-10 bg-indigo-50 dark:bg-emerald-500/20 rounded-full flex items-center justify-center text-indigo-600 dark:text-emerald-400">
+                <Map className="w-5 h-5" />
+              </div>
+            </button>
+          </div>
+        )}
+
+        <button 
+          onClick={() => setIsFabMenuOpen(!isFabMenuOpen)}
+          className="w-14 h-14 bg-indigo-600 dark:bg-indigo-500 rounded-2xl flex items-center justify-center text-white shadow-lg hover:bg-indigo-700 dark:hover:bg-indigo-600 hover:-translate-y-1 transition-all active:scale-95"
+        >
+          <Plus className={`w-6 h-6 transition-transform duration-300 ${isFabMenuOpen ? "rotate-45" : ""}`} />
+        </button>
+      </div>
     </div>
   );
 }
