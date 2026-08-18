@@ -2,7 +2,7 @@ name: 'Desktop Release Build'
 
 on:
   push:
-    branches: [ "main", "rc-*" ]
+#    branches: [ "main", "rc-*" ]
 #    paths-ignore:
 #      - '**.md'      
 #      - '.gitignore'           

@@ -1,30 +1,59 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BookOpen, CheckSquare, FileText, Map, Plus } from 'lucide-react';
+import { db } from './lib/db';
+import type { Entry } from './types';
 
 function App() {
-  const [entries, setEntries] = useState([
-    { id: '1', title: 'Comprar mantimentos', type: 'task', isCompleted: false },
-    { id: '2', title: 'Ler documentação do Tauri', type: 'task', isCompleted: true },
-    { id: '3', title: 'Ideias para o novo app', type: 'note' }
-  ]);
-  
+  const [entries, setEntries] = useState<Entry[]>([]);
   const [isFabMenuOpen, setIsFabMenuOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const handleCreate = (type: 'task' | 'note' | 'reasoningLine') => {
-    const newEntry = {
-      id: Date.now().toString(),
-      title: type === 'task' ? 'Nova Tarefa' : type === 'note' ? 'Nova Anotação' : 'Nova Linha de Raciocínio',
-      type,
-      isCompleted: false
+  useEffect(() => {
+    const loadDb = async () => {
+      try {
+        await db.init();
+        const data = await db.getEntries();
+        setEntries(data);
+      } catch (e: any) {
+        console.error('DB Init Error:', e);
+        alert(`DB Init Error: ${e?.message || JSON.stringify(e)}`);
+      } finally {
+        setIsLoading(false);
+      }
     };
-    setEntries([newEntry, ...entries]);
-    setIsFabMenuOpen(false);
+    loadDb();
+  }, []);
+
+  const handleCreate = async (type: 'task' | 'note' | 'reasoningLine') => {
+    try {
+      const newEntry: Entry = {
+        id: Date.now().toString(),
+        title: type === 'task' ? 'Nova Tarefa' : type === 'note' ? 'Nova Anotação' : 'Nova Linha de Raciocínio',
+        type,
+        isCompleted: false,
+        createdAt: Date.now(),
+        updatedAt: Date.now()
+      };
+      await db.createEntry(newEntry);
+      setEntries(await db.getEntries());
+      setIsFabMenuOpen(false);
+    } catch (e: any) {
+      console.error(e);
+      alert(`Erro ao criar item: ${e?.message || JSON.stringify(e)}`);
+    }
   };
 
-  const toggleTask = (id: string) => {
-    setEntries(entries.map(e => 
-      e.id === id ? { ...e, isCompleted: !e.isCompleted } : e
-    ));
+  const toggleTask = async (id: string) => {
+    try {
+      const target = entries.find(e => e.id === id);
+      if (!target) return;
+      const updated = { ...target, isCompleted: !target.isCompleted };
+      await db.updateEntry(updated);
+      setEntries(await db.getEntries());
+    } catch (e: any) {
+      console.error(e);
+      alert(`Erro ao atualizar item: ${e?.message || JSON.stringify(e)}`);
+    }
   };
 
   return (
@@ -41,7 +70,11 @@ function App() {
 
       {/* Conteúdo Principal */}
       <main className="flex-1 overflow-y-auto pb-24">
-        {entries.length === 0 ? (
+        {isLoading ? (
+          <div className="flex-1 flex flex-col items-center justify-center p-6 text-center mt-20">
+            <p className="text-gray-500 dark:text-gray-400">Iniciando banco de dados...</p>
+          </div>
+        ) : entries.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center p-6 text-center mt-20">
             <BookOpen className="w-16 h-16 text-gray-300 dark:text-gray-700 mb-4" />
             <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2">Tudo limpo por aqui!</h2>

@@ -1,7 +1,7 @@
 name: Android Release Build
 
 on:
-#  push:
+  push:
 #    branches: [ "main", "rc-*" ]
 #    paths-ignore:
 #      - '**.md'      
