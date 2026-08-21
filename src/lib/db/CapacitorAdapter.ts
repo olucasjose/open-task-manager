@@ -20,12 +20,22 @@ export class CapacitorAdapter implements DatabaseAdapter {
           id TEXT PRIMARY KEY NOT NULL,
           title TEXT NOT NULL,
           type TEXT NOT NULL,
+          content TEXT,
+          metadata TEXT,
           isCompleted INTEGER NOT NULL DEFAULT 0,
           createdAt INTEGER,
           updatedAt INTEGER
         );
       `;
       await this.db.execute(schema);
+      
+      try {
+        await this.db.execute('ALTER TABLE entries ADD COLUMN content TEXT;');
+      } catch (e) {}
+      
+      try {
+        await this.db.execute('ALTER TABLE entries ADD COLUMN metadata TEXT;');
+      } catch (e) {}
     } catch (err) {
       console.error('Capacitor SQLite init error', err);
       throw err;
@@ -40,27 +50,27 @@ export class CapacitorAdapter implements DatabaseAdapter {
       id: row.id,
       title: row.title,
       type: row.type as 'task' | 'note' | 'reasoningLine',
+      content: row.content,
       isCompleted: row.isCompleted === 1,
       createdAt: row.createdAt,
-      updatedAt: row.updatedAt
+      updatedAt: row.updatedAt,
+      metadata: row.metadata ? JSON.parse(row.metadata) : undefined
     }));
   }
 
   async createEntry(entry: Entry): Promise<void> {
     if (!this.db) throw new Error('Database not initialized');
     const now = Date.now();
-    await this.db.run(
-      'INSERT INTO entries (id, title, type, isCompleted, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?)',
-      [entry.id, entry.title, entry.type, entry.isCompleted ? 1 : 0, entry.createdAt || now, entry.updatedAt || now]
-    );
+    const query = 'INSERT INTO entries (id, title, type, content, isCompleted, createdAt, updatedAt, metadata) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
+    const values = [entry.id, entry.title, entry.type, entry.content || '', entry.isCompleted ? 1 : 0, entry.createdAt || now, entry.updatedAt || now, entry.metadata ? JSON.stringify(entry.metadata) : null];
+    await this.db.run(query, values);
   }
 
   async updateEntry(entry: Entry): Promise<void> {
     if (!this.db) throw new Error('Database not initialized');
-    await this.db.run(
-      'UPDATE entries SET title = ?, type = ?, isCompleted = ?, updatedAt = ? WHERE id = ?',
-      [entry.title, entry.type, entry.isCompleted ? 1 : 0, Date.now(), entry.id]
-    );
+    const query = 'UPDATE entries SET title = ?, type = ?, content = ?, isCompleted = ?, updatedAt = ?, metadata = ? WHERE id = ?';
+    const values = [entry.title, entry.type, entry.content || '', entry.isCompleted ? 1 : 0, Date.now(), entry.metadata ? JSON.stringify(entry.metadata) : null, entry.id];
+    await this.db.run(query, values);
   }
 
   async deleteEntry(id: string): Promise<void> {
