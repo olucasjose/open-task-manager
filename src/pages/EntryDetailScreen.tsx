@@ -16,6 +16,7 @@ export function EntryDetailScreen() {
   
   const isNew = id === 'new';
   const initialType = (searchParams.get('type') as 'task' | 'note' | 'reasoningLine') || 'note';
+  const notebookId = searchParams.get('notebookId');
   const isReasoningLine = initialType === 'reasoningLine';
 
   const [isLoading, setIsLoading] = useState(!isNew);
@@ -60,6 +61,7 @@ export function EntryDetailScreen() {
           title: title || (initialType === 'task' ? 'Nova Tarefa' : initialType === 'reasoningLine' ? 'Nova Linha de Raciocínio' : 'Nova Anotação'),
           content,
           metadata,
+          notebookId: notebookId || undefined,
           isCompleted: false,
           createdAt: Date.now(),
           updatedAt: Date.now(),
@@ -106,19 +108,30 @@ export function EntryDetailScreen() {
   };
 
   const handleDelete = async () => {
-    if (isNew) return;
-    const confirm = window.confirm(`Deseja enviar este item para a lixeira?`);
-    if (!confirm) return;
-
-    try {
-      if (id) {
-        await db.deleteEntry(id);
+    if (isNew || !entry) return;
+    
+    if (entry.trashedAt) {
+      // Já está na lixeira, deleta definitivamente
+      const confirm = window.confirm(`Deseja excluir permanentemente este item?`);
+      if (!confirm) return;
+      try {
+        await db.deleteEntry(entry.id);
         window.dispatchEvent(new Event('entries-updated'));
         navigate(-1);
+      } catch (error) {
+        console.error('Erro ao deletar entrada:', error);
       }
-    } catch (error) {
-      console.error('Erro ao deletar entrada:', error);
-      alert('Erro ao deletar');
+    } else {
+      // Manda pra lixeira
+      const confirm = window.confirm(`Deseja enviar este item para a lixeira?`);
+      if (!confirm) return;
+      try {
+        await db.updateEntry({ ...entry, trashedAt: Date.now() });
+        window.dispatchEvent(new Event('entries-updated'));
+        navigate(-1);
+      } catch (error) {
+        console.error('Erro ao mover para a lixeira:', error);
+      }
     }
   };
 

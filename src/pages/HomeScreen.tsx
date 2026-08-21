@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import { BookOpen, CheckSquare, FileText, Map, Plus } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect, useMemo } from 'react';
+import { BookOpen, CheckSquare, FileText, Map, Plus, Menu } from 'lucide-react';
+import { useNavigate, useParams, useOutletContext } from 'react-router-dom';
 import { db } from '../lib/db';
 import type { Entry } from '../types';
 
@@ -9,6 +9,16 @@ export function HomeScreen() {
   const [isFabMenuOpen, setIsFabMenuOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
+  const { id: notebookId } = useParams();
+  const { openDrawer } = useOutletContext<{ openDrawer: () => void }>();
+
+  const visibleEntries = useMemo(() => {
+    let filtered = entries.filter(e => !e.trashedAt);
+    if (notebookId && notebookId !== 'all') {
+      filtered = filtered.filter(e => e.notebookId === notebookId);
+    }
+    return filtered;
+  }, [entries, notebookId]);
 
   useEffect(() => {
     const loadDb = async () => {
@@ -33,7 +43,7 @@ export function HomeScreen() {
 
   const handleCreate = (type: 'task' | 'note' | 'reasoningLine') => {
     setIsFabMenuOpen(false);
-    navigate(`/entry/new?type=${type}`);
+    navigate(`/entry/new?type=${type}${notebookId && notebookId !== 'all' ? `&notebookId=${notebookId}` : ''}`);
   };
 
   const toggleTask = async (e: React.MouseEvent, id: string) => {
@@ -56,6 +66,12 @@ export function HomeScreen() {
       {/* Top App Bar Simples */}
       <header className="sticky top-0 z-30 flex items-center justify-between px-4 py-3 bg-white/80 dark:bg-gray-950/80 backdrop-blur-xl border-b border-gray-200 dark:border-gray-800 transition-colors">
         <div className="flex items-center gap-3">
+          <button 
+            onClick={openDrawer}
+            className="md:hidden p-2 -ml-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          >
+            <Menu className="w-6 h-6 text-gray-700 dark:text-gray-200" />
+          </button>
           <h1 className="text-lg font-semibold text-gray-900 dark:text-white truncate">
             Open Task Manager
           </h1>
@@ -68,7 +84,7 @@ export function HomeScreen() {
           <div className="flex-1 flex flex-col items-center justify-center p-6 text-center mt-20">
             <p className="text-gray-500 dark:text-gray-400">Iniciando banco de dados...</p>
           </div>
-        ) : entries.length === 0 ? (
+        ) : visibleEntries.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center p-6 text-center mt-20">
             <BookOpen className="w-16 h-16 text-gray-300 dark:text-gray-700 mb-4" />
             <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2">Tudo limpo por aqui!</h2>
@@ -78,7 +94,7 @@ export function HomeScreen() {
           </div>
         ) : (
           <div className="flex flex-col bg-white dark:bg-gray-900 border-y border-gray-100 dark:border-gray-800 transition-colors mt-2">
-            {entries.map(entry => (
+            {visibleEntries.map(entry => (
               <div 
                 key={entry.id}
                 onClick={() => navigate(`/entry/${entry.id}`)}

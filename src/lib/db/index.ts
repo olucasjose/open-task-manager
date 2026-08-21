@@ -3,7 +3,7 @@ import type { DatabaseAdapter } from './DatabaseAdapter';
 import { WebAdapter } from './WebAdapter';
 import { TauriAdapter } from './TauriAdapter';
 import { CapacitorAdapter } from './CapacitorAdapter';
-import type { Entry } from '../../types';
+import type { Entry, Notebook } from '../../types';
 
 declare global {
   interface Window {
@@ -48,6 +48,22 @@ class DatabaseFacade implements DatabaseAdapter {
 
   async deleteEntry(id: string): Promise<void> {
     return this.adapter.deleteEntry(id);
+  }
+
+  async getNotebooks(): Promise<Notebook[]> {
+    return this.adapter.getNotebooks();
+  }
+
+  async createNotebook(notebook: Notebook): Promise<void> {
+    return this.adapter.createNotebook(notebook);
+  }
+
+  async updateNotebook(notebook: Notebook): Promise<void> {
+    return this.adapter.updateNotebook(notebook);
+  }
+
+  async deleteNotebook(id: string): Promise<void> {
+    return this.adapter.deleteNotebook(id);
   }
 }
 

@@ -1,6 +1,6 @@
 import { CapacitorSQLite, SQLiteConnection, SQLiteDBConnection } from '@capacitor-community/sqlite';
 import type { DatabaseAdapter } from './DatabaseAdapter';
-import type { Entry } from '../../types';
+import type { Entry, Notebook } from '../../types';
 
 export class CapacitorAdapter implements DatabaseAdapter {
   private sqlite: SQLiteConnection;
@@ -24,10 +24,22 @@ export class CapacitorAdapter implements DatabaseAdapter {
           metadata TEXT,
           isCompleted INTEGER NOT NULL DEFAULT 0,
           createdAt INTEGER,
-          updatedAt INTEGER
+          updatedAt INTEGER,
+          notebookId TEXT,
+          trashedAt INTEGER
         );
       `;
       await this.db.execute(schema);
+
+      await this.db.execute(`
+        CREATE TABLE IF NOT EXISTS notebooks (
+          id TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          icon TEXT NOT NULL,
+          createdAt INTEGER,
+          updatedAt INTEGER
+        );
+      `);
       
       try {
         await this.db.execute('ALTER TABLE entries ADD COLUMN content TEXT;');
@@ -35,6 +47,14 @@ export class CapacitorAdapter implements DatabaseAdapter {
       
       try {
         await this.db.execute('ALTER TABLE entries ADD COLUMN metadata TEXT;');
+      } catch (e) {}
+
+      try {
+        await this.db.execute('ALTER TABLE entries ADD COLUMN notebookId TEXT;');
+      } catch (e) {}
+
+      try {
+        await this.db.execute('ALTER TABLE entries ADD COLUMN trashedAt INTEGER;');
       } catch (e) {}
     } catch (err) {
       console.error('Capacitor SQLite init error', err);
@@ -54,27 +74,62 @@ export class CapacitorAdapter implements DatabaseAdapter {
       isCompleted: row.isCompleted === 1,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
-      metadata: row.metadata ? JSON.parse(row.metadata) : undefined
+      metadata: row.metadata ? JSON.parse(row.metadata) : undefined,
+      notebookId: row.notebookId,
+      trashedAt: row.trashedAt
     }));
   }
 
   async createEntry(entry: Entry): Promise<void> {
     if (!this.db) throw new Error('Database not initialized');
     const now = Date.now();
-    const query = 'INSERT INTO entries (id, title, type, content, isCompleted, createdAt, updatedAt, metadata) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
-    const values = [entry.id, entry.title, entry.type, entry.content || '', entry.isCompleted ? 1 : 0, entry.createdAt || now, entry.updatedAt || now, entry.metadata ? JSON.stringify(entry.metadata) : null];
+    const query = 'INSERT INTO entries (id, title, type, content, isCompleted, createdAt, updatedAt, metadata, notebookId, trashedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+    const values = [entry.id, entry.title, entry.type, entry.content || '', entry.isCompleted ? 1 : 0, entry.createdAt || now, entry.updatedAt || now, entry.metadata ? JSON.stringify(entry.metadata) : null, entry.notebookId || null, entry.trashedAt || null];
     await this.db.run(query, values);
   }
 
   async updateEntry(entry: Entry): Promise<void> {
     if (!this.db) throw new Error('Database not initialized');
-    const query = 'UPDATE entries SET title = ?, type = ?, content = ?, isCompleted = ?, updatedAt = ?, metadata = ? WHERE id = ?';
-    const values = [entry.title, entry.type, entry.content || '', entry.isCompleted ? 1 : 0, Date.now(), entry.metadata ? JSON.stringify(entry.metadata) : null, entry.id];
+    const query = 'UPDATE entries SET title = ?, type = ?, content = ?, isCompleted = ?, updatedAt = ?, metadata = ?, notebookId = ?, trashedAt = ? WHERE id = ?';
+    const values = [entry.title, entry.type, entry.content || '', entry.isCompleted ? 1 : 0, Date.now(), entry.metadata ? JSON.stringify(entry.metadata) : null, entry.notebookId || null, entry.trashedAt || null, entry.id];
     await this.db.run(query, values);
   }
 
   async deleteEntry(id: string): Promise<void> {
     if (!this.db) throw new Error('Database not initialized');
     await this.db.run('DELETE FROM entries WHERE id = ?', [id]);
+  }
+
+  async getNotebooks(): Promise<Notebook[]> {
+    if (!this.db) throw new Error('Database not initialized');
+    const res = await this.db.query('SELECT * FROM notebooks ORDER BY createdAt ASC');
+    const rows = res.values || [];
+    return rows.map(row => ({
+      id: row.id,
+      name: row.name,
+      icon: row.icon,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt
+    }));
+  }
+
+  async createNotebook(notebook: Notebook): Promise<void> {
+    if (!this.db) throw new Error('Database not initialized');
+    const now = Date.now();
+    const query = 'INSERT INTO notebooks (id, name, icon, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?)';
+    const values = [notebook.id, notebook.name, notebook.icon, notebook.createdAt || now, notebook.updatedAt || now];
+    await this.db.run(query, values);
+  }
+
+  async updateNotebook(notebook: Notebook): Promise<void> {
+    if (!this.db) throw new Error('Database not initialized');
+    const query = 'UPDATE notebooks SET name = ?, icon = ?, updatedAt = ? WHERE id = ?';
+    const values = [notebook.name, notebook.icon, Date.now(), notebook.id];
+    await this.db.run(query, values);
+  }
+
+  async deleteNotebook(id: string): Promise<void> {
+    if (!this.db) throw new Error('Database not initialized');
+    await this.db.run('DELETE FROM notebooks WHERE id = ?', [id]);
   }
 }
