@@ -3,7 +3,7 @@ import type { DatabaseAdapter } from './DatabaseAdapter';
 import { WebAdapter } from './WebAdapter';
 import { TauriAdapter } from './TauriAdapter';
 import { CapacitorAdapter } from './CapacitorAdapter';
-import type { Entry } from '../../types';
+import type { Entry, Notebook } from '../../types';
 
 declare global {
   interface Window {
@@ -14,6 +14,7 @@ declare global {
 class DatabaseFacade implements DatabaseAdapter {
   private adapter: DatabaseAdapter;
   private initialized = false;
+  private initPromise: Promise<void> | null = null;
 
   constructor() {
     if (window.__TAURI_INTERNALS__) {
@@ -30,8 +31,18 @@ class DatabaseFacade implements DatabaseAdapter {
 
   async init(): Promise<void> {
     if (this.initialized) return;
-    await this.adapter.init();
-    this.initialized = true;
+    if (this.initPromise) return this.initPromise;
+
+    this.initPromise = (async () => {
+      try {
+        await this.adapter.init();
+        this.initialized = true;
+      } finally {
+        this.initPromise = null;
+      }
+    })();
+
+    return this.initPromise;
   }
 
   async getEntries(): Promise<Entry[]> {
@@ -48,6 +59,22 @@ class DatabaseFacade implements DatabaseAdapter {
 
   async deleteEntry(id: string): Promise<void> {
     return this.adapter.deleteEntry(id);
+  }
+
+  async getNotebooks(): Promise<Notebook[]> {
+    return this.adapter.getNotebooks();
+  }
+
+  async createNotebook(notebook: Notebook): Promise<void> {
+    return this.adapter.createNotebook(notebook);
+  }
+
+  async updateNotebook(notebook: Notebook): Promise<void> {
+    return this.adapter.updateNotebook(notebook);
+  }
+
+  async deleteNotebook(id: string): Promise<void> {
+    return this.adapter.deleteNotebook(id);
   }
 }
 

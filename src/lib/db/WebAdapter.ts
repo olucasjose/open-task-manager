@@ -1,16 +1,19 @@
 import { openDB } from 'idb';
 import type { IDBPDatabase } from 'idb';
 import type { DatabaseAdapter } from './DatabaseAdapter';
-import type { Entry } from '../../types';
+import type { Entry, Notebook } from '../../types';
 
 export class WebAdapter implements DatabaseAdapter {
   private db: IDBPDatabase | null = null;
 
   async init(): Promise<void> {
-    this.db = await openDB('opentaskmanager_db', 1, {
+    this.db = await openDB('opentaskmanager_db', 2, {
       upgrade(db) {
         if (!db.objectStoreNames.contains('entries')) {
           db.createObjectStore('entries', { keyPath: 'id' });
+        }
+        if (!db.objectStoreNames.contains('notebooks')) {
+          db.createObjectStore('notebooks', { keyPath: 'id' });
         }
       },
     });
@@ -40,5 +43,31 @@ export class WebAdapter implements DatabaseAdapter {
   async deleteEntry(id: string): Promise<void> {
     if (!this.db) throw new Error('Database not initialized');
     await this.db.delete('entries', id);
+  }
+
+  async getNotebooks(): Promise<Notebook[]> {
+    if (!this.db) throw new Error('Database not initialized');
+    const all = await this.db.getAll('notebooks');
+    return all.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+  }
+
+  async createNotebook(notebook: Notebook): Promise<void> {
+    if (!this.db) throw new Error('Database not initialized');
+    const now = Date.now();
+    await this.db.put('notebooks', { 
+      ...notebook, 
+      createdAt: notebook.createdAt || now, 
+      updatedAt: notebook.updatedAt || now 
+    });
+  }
+
+  async updateNotebook(notebook: Notebook): Promise<void> {
+    if (!this.db) throw new Error('Database not initialized');
+    await this.db.put('notebooks', { ...notebook, updatedAt: Date.now() });
+  }
+
+  async deleteNotebook(id: string): Promise<void> {
+    if (!this.db) throw new Error('Database not initialized');
+    await this.db.delete('notebooks', id);
   }
 }

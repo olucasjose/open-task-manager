@@ -1,3 +1,11 @@
+export interface Notebook {
+  id: string;
+  name: string;
+  icon: string;
+  createdAt: number;
+  updatedAt: number;
+}
+
 export interface ReasoningLineStage {
   id: string;
   title: string;
@@ -14,4 +22,6 @@ export interface Entry {
   createdAt?: number;
   updatedAt?: number;
   metadata?: any;
+  notebookId?: string;
+  trashedAt?: number;
 }
