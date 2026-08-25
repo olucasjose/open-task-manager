@@ -2,12 +2,10 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { TopAppBar } from '../components/TopAppBar';
 import { Edit2, Trash2 } from 'lucide-react';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import TextareaAutosize from 'react-textarea-autosize';
-import { ReasoningLineEditor } from '../components/ReasoningLineEditor';
+
 import { db } from '../lib/db';
 import type { Entry } from '../types';
+import { ENTRY_STRATEGIES } from '../registry/EntryRegistry';
 
 export function EntryDetailScreen() {
   const { id } = useParams();
@@ -57,7 +55,7 @@ export function EntryDetailScreen() {
         const newEntry: Entry = {
           id: Date.now().toString(),
           type: initialType,
-          title: title || (initialType === 'task' ? 'Nova Tarefa' : initialType === 'reasoningLine' ? 'Nova Linha de Raciocínio' : 'Nova Anotação'),
+          title: title || ENTRY_STRATEGIES[initialType]?.defaultTitle || 'Sem Título',
           content,
           metadata,
           notebookId: notebookId || undefined,
@@ -71,7 +69,7 @@ export function EntryDetailScreen() {
         if (!entry) return;
         const updatedEntry: Entry = {
           ...entry,
-          title: title || (entry.type === 'task' ? 'Nova Tarefa' : entry.type === 'reasoningLine' ? 'Nova Linha de Raciocínio' : 'Nova Anotação'),
+          title: title || ENTRY_STRATEGIES[entry.type]?.defaultTitle || 'Sem Título',
           content,
           metadata,
           updatedAt: Date.now()
@@ -135,7 +133,7 @@ export function EntryDetailScreen() {
   };
 
   const currentType = entry?.type || initialType;
-  const typeLabel = currentType === 'task' ? 'Tarefa' : currentType === 'reasoningLine' ? 'Linha de Raciocínio' : 'Anotação';
+  const typeLabel = ENTRY_STRATEGIES[currentType]?.label || 'Item';
 
   return (
     <div className="flex flex-col h-full bg-white dark:bg-gray-950 flex-1 relative transition-colors min-h-screen">
@@ -163,59 +161,26 @@ export function EntryDetailScreen() {
           <>
             {/* PAINEL EDITOR (Esquerda) */}
             <div className={`flex-1 flex-col gap-4 p-6 overflow-y-auto pb-24 md:pb-6 ${isEditing ? 'flex' : 'hidden md:flex'} md:w-1/2 md:border-r md:border-gray-100 dark:md:border-gray-800 transition-all`}>
-              <TextareaAutosize
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder={`Título da ${typeLabel.toLowerCase()}`}
-                autoFocus={isNew}
-                className="text-2xl font-bold text-gray-900 dark:text-gray-100 bg-transparent outline-none resize-none break-words"
-              />
-              {currentType === 'reasoningLine' ? (
-                <ReasoningLineEditor 
-                  stages={metadata?.stages || []}
-                  onChange={(stages) => setMetadata({ ...metadata, stages })}
-                  isEditing={true}
-                />
-              ) : (
-                <TextareaAutosize
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                  placeholder={typeLabel === 'Tarefa' ? "Adicione uma descrição..." : "Comece a escrever..."}
-                  minRows={15}
-                  className="text-lg text-gray-700 dark:text-gray-300 bg-transparent outline-none resize-none leading-relaxed break-words"
-                />
-              )}
+              {ENTRY_STRATEGIES[currentType]?.renderEditor({
+                title,
+                setTitle,
+                content,
+                setContent,
+                metadata,
+                setMetadata,
+                isNew
+              })}
             </div>
 
             {/* PAINEL PREVIEW (Direita) */}
             <div className={`flex-1 flex-col p-6 overflow-y-auto pb-24 md:pb-6 ${!isEditing ? 'flex' : 'hidden md:flex'} md:w-1/2 transition-all bg-gray-50/30 dark:bg-gray-900/10`}>
               {entry || isNew ? (
-                <div className="flex flex-col">
-                  <h1 className={`text-2xl font-bold mb-6 break-words md:hidden ${entry?.isCompleted ? 'text-gray-400 dark:text-gray-500 line-through' : 'text-gray-900 dark:text-gray-100'}`}>
-                    {title || <span className="text-gray-400 italic">Sem título</span>}
-                  </h1>
-                  {currentType === 'reasoningLine' ? (
-                    <ReasoningLineEditor 
-                      stages={metadata?.stages || []}
-                      onChange={(stages) => setMetadata({ ...metadata, stages })}
-                      isEditing={false}
-                    />
-                  ) : (
-                    <>
-                      {content && (
-                        <div className="prose prose-indigo dark:prose-invert prose-lg max-w-none text-gray-700 dark:text-gray-300 break-words mb-8 transition-colors">
-                          <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                            {content}
-                          </ReactMarkdown>
-                        </div>
-                      )}
-                      
-                      {!content && (
-                        <p className="text-gray-400 dark:text-gray-500 italic mt-4">A pré-visualização aparecerá aqui.</p>
-                      )}
-                    </>
-                  )}
-                </div>
+                ENTRY_STRATEGIES[currentType]?.renderPreview({
+                  title,
+                  content,
+                  metadata,
+                  isCompleted: entry?.isCompleted
+                })
               ) : (
                 <p className="text-red-500 dark:text-red-400 text-center mt-10">Registro não encontrado.</p>
               )}

@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Check, FileText, Map, Trash2, RefreshCw, Menu } from 'lucide-react';
+import { Trash2, RefreshCw, Menu } from 'lucide-react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import { db } from '../lib/db';
 import type { Entry } from '../types';
+import { ENTRY_STRATEGIES } from '../registry/EntryRegistry';
 
 export function TrashScreen() {
   const [entries, setEntries] = useState<Entry[]>([]);
@@ -113,19 +114,7 @@ export function TrashScreen() {
                 className="group flex items-start gap-3 p-4 border-b last:border-b-0 border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer"
               >
                 <div className="mt-0.5 shrink-0">
-                  {entry.type === 'task' ? (
-                    <div className="flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center border-gray-300 dark:border-gray-600 text-transparent">
-                      <Check className="w-4 h-4" />
-                    </div>
-                  ) : entry.type === 'reasoningLine' ? (
-                    <div className="flex-shrink-0 w-6 h-6 flex items-center justify-center text-emerald-500">
-                      <Map className="w-5 h-5" />
-                    </div>
-                  ) : (
-                    <div className="flex-shrink-0 w-6 h-6 flex items-center justify-center text-indigo-400">
-                      <FileText className="w-5 h-5" />
-                    </div>
-                  )}
+                  {ENTRY_STRATEGIES[entry.type]?.renderListIcon(entry) || ENTRY_STRATEGIES.note.renderListIcon(entry)}
                 </div>
                 
                 <div className="flex-1 min-w-0">

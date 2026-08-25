@@ -1,8 +1,9 @@
 import { useState, useEffect, useMemo } from 'react';
-import { BookOpen, Check, CheckSquare, FileText, Map, Plus, Menu } from 'lucide-react';
+import { BookOpen, Plus, Menu } from 'lucide-react';
 import { useNavigate, useParams, useOutletContext } from 'react-router-dom';
 import { db } from '../lib/db';
 import type { Entry, Notebook } from '../types';
+import { ENTRY_STRATEGIES } from '../registry/EntryRegistry';
 
 export function HomeScreen() {
   const [entries, setEntries] = useState<Entry[]>([]);
@@ -114,28 +115,8 @@ export function HomeScreen() {
                   entry.type === 'task' && entry.isCompleted ? 'opacity-75 bg-gray-50/50 dark:bg-gray-950/50' : ''
                 }`}
               >
-                {/* Ícone / Checkbox */}
                 <div className="mt-0.5 shrink-0">
-                  {entry.type === 'task' ? (
-                    <button 
-                      onClick={(e) => toggleTask(e, entry.id)}
-                      className={`flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${
-                        entry.isCompleted 
-                          ? 'bg-indigo-500 border-indigo-500 text-white' 
-                          : 'border-gray-300 dark:border-gray-600 hover:border-indigo-400 dark:hover:border-indigo-500 text-transparent'
-                      }`}
-                    >
-                      <Check className="w-4 h-4" />
-                    </button>
-                  ) : entry.type === 'reasoningLine' ? (
-                    <div className="flex-shrink-0 w-6 h-6 flex items-center justify-center text-emerald-500">
-                      <Map className="w-5 h-5" />
-                    </div>
-                  ) : (
-                    <div className="flex-shrink-0 w-6 h-6 flex items-center justify-center text-indigo-400">
-                      <FileText className="w-5 h-5" />
-                    </div>
-                  )}
+                  {ENTRY_STRATEGIES[entry.type]?.renderListIcon(entry, { onClick: (e: React.MouseEvent) => toggleTask(e, entry.id) }) || ENTRY_STRATEGIES.note.renderListIcon(entry)}
                 </div>
                 
                 {/* Título e Metadados */}
@@ -172,33 +153,18 @@ export function HomeScreen() {
       <div className="fixed bottom-6 right-4 md:bottom-8 md:right-8 z-50 flex flex-col items-end gap-3">
         {isFabMenuOpen && (
           <div className="flex flex-col items-end gap-3 mb-2 animate-in fade-in slide-in-from-bottom-4 duration-200">
-            <button 
-              onClick={() => handleCreate('note')}
-              className="flex items-center gap-3 bg-white dark:bg-gray-800 px-4 py-3 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 text-gray-700 dark:text-gray-200 font-medium hover:bg-gray-50 dark:hover:bg-gray-700/50 active:scale-95 transition-all"
-            >
-              <span>Nova Anotação</span>
-              <div className="w-10 h-10 bg-indigo-50 dark:bg-indigo-500/20 rounded-full flex items-center justify-center text-indigo-600 dark:text-indigo-400">
-                <FileText className="w-5 h-5" />
-              </div>
-            </button>
-            <button 
-              onClick={() => handleCreate('task')}
-              className="flex items-center gap-3 bg-white dark:bg-gray-800 px-4 py-3 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 text-gray-700 dark:text-gray-200 font-medium hover:bg-gray-50 dark:hover:bg-gray-700/50 active:scale-95 transition-all"
-            >
-              <span>Nova Tarefa</span>
-              <div className="w-10 h-10 bg-indigo-50 dark:bg-amber-500/20 rounded-full flex items-center justify-center text-indigo-600 dark:text-amber-400">
-                <CheckSquare className="w-5 h-5" />
-              </div>
-            </button>
-            <button 
-              onClick={() => handleCreate('reasoningLine')}
-              className="flex items-center gap-3 bg-white dark:bg-gray-800 px-4 py-3 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 text-gray-700 dark:text-gray-200 font-medium hover:bg-gray-50 dark:hover:bg-gray-700/50 active:scale-95 transition-all"
-            >
-              <span>Nova Linha de Raciocínio</span>
-              <div className="w-10 h-10 bg-indigo-50 dark:bg-emerald-500/20 rounded-full flex items-center justify-center text-indigo-600 dark:text-emerald-400">
-                <Map className="w-5 h-5" />
-              </div>
-            </button>
+            {Object.values(ENTRY_STRATEGIES).map(strategy => (
+              <button 
+                key={strategy.id}
+                onClick={() => handleCreate(strategy.id as 'task' | 'note' | 'reasoningLine')}
+                className="flex items-center gap-3 bg-white dark:bg-gray-800 px-4 py-3 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 text-gray-700 dark:text-gray-200 font-medium hover:bg-gray-50 dark:hover:bg-gray-700/50 active:scale-95 transition-all"
+              >
+                <span>{strategy.fab.label}</span>
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${strategy.fab.bgClass} ${strategy.fab.colorClass}`}>
+                  {strategy.fab.icon}
+                </div>
+              </button>
+            ))}
           </div>
         )}
 

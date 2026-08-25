@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Book, Inbox, Trash2, Folder, Plus, X, Check, MoreVertical, Edit2, ChevronRight, ChevronDown, FileText, Map } from 'lucide-react';
+import { Book, Inbox, Trash2, Folder, Plus, X, Check, MoreVertical, Edit2, ChevronRight, ChevronDown } from 'lucide-react';
 import { db } from '../lib/db';
 import type { Notebook, Entry } from '../types';
+import { ENTRY_STRATEGIES } from '../registry/EntryRegistry';
 
 interface AppDrawerProps {
   isOpen?: boolean;
@@ -259,17 +260,9 @@ export function AppDrawer({ isOpen = false, onClose }: AppDrawerProps) {
                               className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isEntryActive ? 'bg-indigo-50/50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800/50 hover:text-gray-700 dark:hover:text-gray-200'}`}
                             >
                               <div className="shrink-0 flex items-center justify-center">
-                                {entry.type === 'task' ? (
-                                  <div className={`w-4 h-4 rounded-full border-[1.5px] flex items-center justify-center ${entry.isCompleted ? 'bg-indigo-500 border-indigo-500 text-white' : 'border-gray-400 dark:border-gray-500 text-transparent'}`}>
-                                    <Check className="w-2.5 h-2.5" />
-                                  </div>
-                                ) : entry.type === 'reasoningLine' ? (
-                                  <Map className="w-4 h-4 text-emerald-500 opacity-90" />
-                                ) : (
-                                  <FileText className="w-4 h-4 text-indigo-400 opacity-90" />
-                                )}
+                                {ENTRY_STRATEGIES[entry.type]?.renderListIcon(entry) || ENTRY_STRATEGIES.note.renderListIcon(entry)}
                               </div>
-                              <span className="truncate">{entry.title || (entry.type === 'task' ? 'Nova Tarefa' : entry.type === 'reasoningLine' ? 'Nova Linha de Raciocínio' : 'Nova Anotação')}</span>
+                              <span className="truncate">{entry.title || ENTRY_STRATEGIES[entry.type]?.defaultTitle || 'Sem título'}</span>
                             </Link>
                           );
                         })}
