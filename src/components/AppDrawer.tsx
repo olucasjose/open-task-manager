@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Book, Inbox, Trash2, Folder, Plus, X, Check, MoreVertical, Edit2, ChevronRight, ChevronDown } from 'lucide-react';
 import { db } from '../lib/db';
-import type { Notebook, Entry } from '../types';
+import type { Notebook } from '../types';
 import { ENTRY_STRATEGIES } from '../registry/EntryRegistry';
+import { useStore } from '../store/useStore';
 
 interface AppDrawerProps {
   isOpen?: boolean;
@@ -14,8 +15,8 @@ export function AppDrawer({ isOpen = false, onClose }: AppDrawerProps) {
   const location = useLocation();
   const navigate = useNavigate();
   
-  const [notebooks, setNotebooks] = useState<Notebook[]>([]);
-  const [allEntries, setAllEntries] = useState<Entry[]>([]);
+  const notebooks = useStore(state => state.notebooks);
+  const allEntries = useStore(state => state.entries);
   
   const [isCreating, setIsCreating] = useState(false);
   const [newNotebookName, setNewNotebookName] = useState('');
@@ -26,28 +27,7 @@ export function AppDrawer({ isOpen = false, onClose }: AppDrawerProps) {
   
   const [expandedNotebooks, setExpandedNotebooks] = useState<Set<string>>(new Set());
 
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const n = await db.getNotebooks();
-        const e = await db.getEntries();
-        setNotebooks(n);
-        setAllEntries(e);
-      } catch (err) {
-        console.error('Erro ao carregar dados do Drawer', err);
-      }
-    };
-    
-    loadData();
-    
-    const handleUpdate = () => loadData();
-    window.addEventListener('entries-updated', handleUpdate);
-    window.addEventListener('notebooks-updated', handleUpdate);
-    return () => {
-      window.removeEventListener('entries-updated', handleUpdate);
-      window.removeEventListener('notebooks-updated', handleUpdate);
-    };
-  }, []);
+
 
   const handleCreateNotebook = async () => {
     if (!newNotebookName.trim()) {
@@ -65,7 +45,7 @@ export function AppDrawer({ isOpen = false, onClose }: AppDrawerProps) {
       await db.createNotebook(nb);
       setNewNotebookName('');
       setIsCreating(false);
-      window.dispatchEvent(new Event('notebooks-updated'));
+      useStore.getState().refresh();
     } catch (err) {
       console.error('Erro ao criar caderno', err);
     }
@@ -148,7 +128,7 @@ export function AppDrawer({ isOpen = false, onClose }: AppDrawerProps) {
                           if (e.key === 'Enter' && editName.trim()) {
                             await db.updateNotebook({ ...notebook, name: editName });
                             setEditingId(null);
-                            window.dispatchEvent(new Event('notebooks-updated'));
+                            useStore.getState().refresh();
                           }
                           if (e.key === 'Escape') setEditingId(null);
                         }}
@@ -160,7 +140,7 @@ export function AppDrawer({ isOpen = false, onClose }: AppDrawerProps) {
                         if (editName.trim()) {
                           await db.updateNotebook({ ...notebook, name: editName });
                           setEditingId(null);
-                          window.dispatchEvent(new Event('notebooks-updated'));
+                          useStore.getState().refresh();
                         }
                       }} className="p-1 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 rounded-md shrink-0 transition-colors">
                         <Check className="w-4 h-4" />
@@ -232,8 +212,7 @@ export function AppDrawer({ isOpen = false, onClose }: AppDrawerProps) {
                                      for (const entry of notebookEntries) {
                                        await db.updateEntry({ ...entry, notebookId: undefined, trashedAt: Date.now() });
                                      }
-                                     window.dispatchEvent(new Event('notebooks-updated'));
-                                     window.dispatchEvent(new Event('entries-updated'));
+                                     useStore.getState().refresh();
                                      navigate('/notebook/all');
                                    }
                                  }} 

@@ -8,6 +8,7 @@ import { EntryDetailScreen } from './pages/EntryDetailScreen';
 import { TrashScreen } from './pages/TrashScreen';
 import { MainLayout } from './layouts/MainLayout';
 import { db } from './lib/db';
+import { useStore } from './store/useStore';
 
 function BackButtonHandler() {
   const navigate = useNavigate();
@@ -44,7 +45,10 @@ function App() {
 
   useEffect(() => {
     db.init()
-      .then(() => setIsDbReady(true))
+      .then(() => {
+        setIsDbReady(true);
+        useStore.getState().refresh();
+      })
       .catch((e) => {
         console.error('Failed to initialize database', e);
         setDbError(e.message || String(e));

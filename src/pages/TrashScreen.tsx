@@ -1,40 +1,24 @@
-import { useState, useEffect } from 'react';
 import { Trash2, RefreshCw, Menu } from 'lucide-react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import { db } from '../lib/db';
 import type { Entry } from '../types';
 import { ENTRY_STRATEGIES } from '../registry/EntryRegistry';
+import { useStore } from '../store/useStore';
 
 export function TrashScreen() {
-  const [entries, setEntries] = useState<Entry[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const allEntries = useStore(state => state.entries);
+  const isLoaded = useStore(state => state.isLoaded);
+  const entries = allEntries.filter(e => e.trashedAt);
+
   const navigate = useNavigate();
   const { openDrawer } = useOutletContext<{ openDrawer: () => void }>();
 
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const data = await db.getEntries();
-        // Only show trashed entries
-        setEntries(data.filter(e => e.trashedAt));
-      } catch (e: any) {
-        console.error('DB Init Error:', e);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    loadData();
-
-    const handleUpdate = () => loadData();
-    window.addEventListener('entries-updated', handleUpdate);
-    return () => window.removeEventListener('entries-updated', handleUpdate);
-  }, []);
 
   const handleRestore = async (e: React.MouseEvent, entry: Entry) => {
     e.stopPropagation();
     try {
       await db.updateEntry({ ...entry, trashedAt: undefined });
-      window.dispatchEvent(new Event('entries-updated'));
+      useStore.getState().refresh();
     } catch (err: any) {
       console.error(err);
       alert(`Erro ao restaurar: ${err?.message || JSON.stringify(err)}`);
@@ -47,7 +31,7 @@ export function TrashScreen() {
     if (!confirm) return;
     try {
       await db.deleteEntry(id);
-      window.dispatchEvent(new Event('entries-updated'));
+      useStore.getState().refresh();
     } catch (err: any) {
       console.error(err);
       alert(`Erro ao excluir: ${err?.message || JSON.stringify(err)}`);
@@ -61,7 +45,7 @@ export function TrashScreen() {
       for (const entry of entries) {
         await db.deleteEntry(entry.id);
       }
-      window.dispatchEvent(new Event('entries-updated'));
+      useStore.getState().refresh();
     } catch (err: any) {
       console.error(err);
     }
@@ -93,7 +77,7 @@ export function TrashScreen() {
       </header>
 
       <main className="flex-1 overflow-y-auto pb-24">
-        {isLoading ? (
+        {!isLoaded ? (
           <div className="flex-1 flex flex-col items-center justify-center p-6 text-center mt-20">
             <p className="text-gray-500 dark:text-gray-400">Carregando...</p>
           </div>

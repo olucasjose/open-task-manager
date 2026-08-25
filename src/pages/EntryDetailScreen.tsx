@@ -6,6 +6,7 @@ import { Edit2, Trash2 } from 'lucide-react';
 import { db } from '../lib/db';
 import type { Entry } from '../types';
 import { ENTRY_STRATEGIES } from '../registry/EntryRegistry';
+import { useStore } from '../store/useStore';
 
 export function EntryDetailScreen() {
   const { id } = useParams();
@@ -17,6 +18,9 @@ export function EntryDetailScreen() {
   const notebookId = searchParams.get('notebookId');
   const isReasoningLine = initialType === 'reasoningLine';
 
+  const allEntries = useStore(state => state.entries);
+  const isLoaded = useStore(state => state.isLoaded);
+
   const [isLoading, setIsLoading] = useState(!isNew);
   const [entry, setEntry] = useState<Entry | null>(null);
   const [isEditing, setIsEditing] = useState(isNew);
@@ -26,26 +30,18 @@ export function EntryDetailScreen() {
   const [metadata, setMetadata] = useState<any>(isReasoningLine ? { stages: [] } : null);
 
   useEffect(() => {
-    if (isNew) return;
+    if (isNew || !isLoaded) return;
     
-    const fetchEntry = async () => {
-      try {
-        const entries = await db.getEntries();
-        const target = entries.find(e => e.id === id);
-        if (target) {
-          setEntry(target);
-          setTitle(target.title || '');
-          setContent(target.content || '');
-          setMetadata(target.metadata || (target.type === 'reasoningLine' ? { stages: [] } : null));
-        }
-      } catch (error) {
-        console.error('Erro ao buscar entrada:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchEntry();
-  }, [id, isNew]);
+    const target = allEntries.find(e => e.id === id);
+    if (target && !entry) {
+      setEntry(target);
+      setTitle(target.title || '');
+      setContent(target.content || '');
+      setMetadata(target.metadata || (target.type === 'reasoningLine' ? { stages: [] } : null));
+    }
+    setIsLoading(false);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, isNew, isLoaded, allEntries]);
 
   const saveEntry = async () => {
     if (!title.trim() && !content.trim()) return;
@@ -64,7 +60,7 @@ export function EntryDetailScreen() {
           updatedAt: Date.now(),
         };
         await db.createEntry(newEntry);
-        window.dispatchEvent(new Event('entries-updated'));
+        useStore.getState().refresh();
       } else {
         if (!entry) return;
         const updatedEntry: Entry = {
@@ -76,7 +72,7 @@ export function EntryDetailScreen() {
         };
         await db.updateEntry(updatedEntry);
         setEntry(updatedEntry);
-        window.dispatchEvent(new Event('entries-updated'));
+        useStore.getState().refresh();
       }
     } catch (error) {
       console.error('Erro ao salvar entrada:', error);
@@ -113,7 +109,7 @@ export function EntryDetailScreen() {
       if (!confirm) return;
       try {
         await db.deleteEntry(entry.id);
-        window.dispatchEvent(new Event('entries-updated'));
+        useStore.getState().refresh();
         navigate(-1);
       } catch (error) {
         console.error('Erro ao deletar entrada:', error);
@@ -124,7 +120,7 @@ export function EntryDetailScreen() {
       if (!confirm) return;
       try {
         await db.updateEntry({ ...entry, trashedAt: Date.now() });
-        window.dispatchEvent(new Event('entries-updated'));
+        useStore.getState().refresh();
         navigate(-1);
       } catch (error) {
         console.error('Erro ao mover para a lixeira:', error);

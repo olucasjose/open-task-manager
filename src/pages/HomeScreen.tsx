@@ -1,15 +1,16 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { BookOpen, Plus, Menu } from 'lucide-react';
 import { useNavigate, useParams, useOutletContext } from 'react-router-dom';
 import { db } from '../lib/db';
-import type { Entry, Notebook } from '../types';
 import { ENTRY_STRATEGIES } from '../registry/EntryRegistry';
+import { useStore } from '../store/useStore';
 
 export function HomeScreen() {
-  const [entries, setEntries] = useState<Entry[]>([]);
-  const [notebooks, setNotebooks] = useState<Notebook[]>([]);
+  const entries = useStore(state => state.entries);
+  const notebooks = useStore(state => state.notebooks);
+  const isLoaded = useStore(state => state.isLoaded);
+  
   const [isFabMenuOpen, setIsFabMenuOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   const { id: notebookId } = useParams();
   const { openDrawer } = useOutletContext<{ openDrawer: () => void }>();
@@ -28,31 +29,6 @@ export function HomeScreen() {
     return nb?.name || 'Todos os Itens';
   }, [notebooks, notebookId]);
 
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const data = await db.getEntries();
-        const nbData = await db.getNotebooks();
-        setEntries(data);
-        setNotebooks(nbData);
-      } catch (e: any) {
-        console.error('DB Init Error:', e);
-        alert(`DB Init Error: ${e?.message || JSON.stringify(e)}`);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    loadData();
-
-    // Listener for updates from EntryDetailScreen and AppDrawer
-    const handleUpdate = () => loadData();
-    window.addEventListener('entries-updated', handleUpdate);
-    window.addEventListener('notebooks-updated', handleUpdate);
-    return () => {
-      window.removeEventListener('entries-updated', handleUpdate);
-      window.removeEventListener('notebooks-updated', handleUpdate);
-    };
-  }, []);
 
   const handleCreate = (type: 'task' | 'note' | 'reasoningLine') => {
     setIsFabMenuOpen(false);
@@ -66,7 +42,7 @@ export function HomeScreen() {
       if (!target) return;
       const updated = { ...target, isCompleted: !target.isCompleted };
       await db.updateEntry(updated);
-      setEntries(await db.getEntries());
+      useStore.getState().refresh();
     } catch (err: any) {
       console.error(err);
       alert(`Erro ao atualizar item: ${err?.message || JSON.stringify(err)}`);
@@ -93,7 +69,7 @@ export function HomeScreen() {
 
       {/* Conteúdo Principal */}
       <main className="flex-1 overflow-y-auto pb-24">
-        {isLoading ? (
+        {!isLoaded ? (
           <div className="flex-1 flex flex-col items-center justify-center p-6 text-center mt-20">
             <p className="text-gray-500 dark:text-gray-400 font-medium">Carregando...</p>
           </div>
