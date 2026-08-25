@@ -32,7 +32,6 @@ export function EntryDetailScreen() {
     
     const fetchEntry = async () => {
       try {
-        await db.init();
         const entries = await db.getEntries();
         const target = entries.find(e => e.id === id);
         if (target) {

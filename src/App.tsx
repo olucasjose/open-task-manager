@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { Capacitor } from '@capacitor/core';
 import { App as CapacitorApp } from '@capacitor/app';
@@ -7,6 +7,7 @@ import { HomeScreen } from './pages/HomeScreen';
 import { EntryDetailScreen } from './pages/EntryDetailScreen';
 import { TrashScreen } from './pages/TrashScreen';
 import { MainLayout } from './layouts/MainLayout';
+import { db } from './lib/db';
 
 function BackButtonHandler() {
   const navigate = useNavigate();
@@ -38,6 +39,37 @@ function BackButtonHandler() {
 }
 
 function App() {
+  const [isDbReady, setIsDbReady] = useState(false);
+  const [dbError, setDbError] = useState<string | null>(null);
+
+  useEffect(() => {
+    db.init()
+      .then(() => setIsDbReady(true))
+      .catch((e) => {
+        console.error('Failed to initialize database', e);
+        setDbError(e.message || String(e));
+      });
+  }, []);
+
+  if (dbError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950 p-6">
+        <div className="text-center">
+          <h2 className="text-xl font-bold text-red-600 dark:text-red-400 mb-2">Erro Crítico</h2>
+          <p className="text-gray-600 dark:text-gray-300 max-w-md">{dbError}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isDbReady) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950 p-6">
+        <p className="text-gray-500 dark:text-gray-400 font-medium">Iniciando sistema...</p>
+      </div>
+    );
+  }
+
   return (
     <BrowserRouter>
       <BackButtonHandler />

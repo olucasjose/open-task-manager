@@ -11,9 +11,8 @@ export function TrashScreen() {
   const { openDrawer } = useOutletContext<{ openDrawer: () => void }>();
 
   useEffect(() => {
-    const loadDb = async () => {
+    const loadData = async () => {
       try {
-        await db.init();
         const data = await db.getEntries();
         // Only show trashed entries
         setEntries(data.filter(e => e.trashedAt));
@@ -23,9 +22,9 @@ export function TrashScreen() {
         setIsLoading(false);
       }
     };
-    loadDb();
+    loadData();
 
-    const handleUpdate = () => loadDb();
+    const handleUpdate = () => loadData();
     window.addEventListener('entries-updated', handleUpdate);
     return () => window.removeEventListener('entries-updated', handleUpdate);
   }, []);

@@ -28,9 +28,8 @@ export function HomeScreen() {
   }, [notebooks, notebookId]);
 
   useEffect(() => {
-    const loadDb = async () => {
+    const loadData = async () => {
       try {
-        await db.init();
         const data = await db.getEntries();
         const nbData = await db.getNotebooks();
         setEntries(data);
@@ -42,10 +41,10 @@ export function HomeScreen() {
         setIsLoading(false);
       }
     };
-    loadDb();
+    loadData();
 
     // Listener for updates from EntryDetailScreen and AppDrawer
-    const handleUpdate = () => loadDb();
+    const handleUpdate = () => loadData();
     window.addEventListener('entries-updated', handleUpdate);
     window.addEventListener('notebooks-updated', handleUpdate);
     return () => {
@@ -95,7 +94,7 @@ export function HomeScreen() {
       <main className="flex-1 overflow-y-auto pb-24">
         {isLoading ? (
           <div className="flex-1 flex flex-col items-center justify-center p-6 text-center mt-20">
-            <p className="text-gray-500 dark:text-gray-400">Iniciando banco de dados...</p>
+            <p className="text-gray-500 dark:text-gray-400 font-medium">Carregando...</p>
           </div>
         ) : visibleEntries.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center p-6 text-center mt-20">

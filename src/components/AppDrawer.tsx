@@ -28,7 +28,6 @@ export function AppDrawer({ isOpen = false, onClose }: AppDrawerProps) {
   useEffect(() => {
     const loadData = async () => {
       try {
-        await db.init();
         const n = await db.getNotebooks();
         const e = await db.getEntries();
         setNotebooks(n);
