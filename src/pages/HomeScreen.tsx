@@ -1,11 +1,12 @@
 import { useState, useEffect, useMemo } from 'react';
-import { BookOpen, CheckSquare, FileText, Map, Plus, Menu } from 'lucide-react';
+import { BookOpen, Check, CheckSquare, FileText, Map, Plus, Menu } from 'lucide-react';
 import { useNavigate, useParams, useOutletContext } from 'react-router-dom';
 import { db } from '../lib/db';
-import type { Entry } from '../types';
+import type { Entry, Notebook } from '../types';
 
 export function HomeScreen() {
   const [entries, setEntries] = useState<Entry[]>([]);
+  const [notebooks, setNotebooks] = useState<Notebook[]>([]);
   const [isFabMenuOpen, setIsFabMenuOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
@@ -20,12 +21,20 @@ export function HomeScreen() {
     return filtered;
   }, [entries, notebookId]);
 
+  const notebookName = useMemo(() => {
+    if (!notebookId || notebookId === 'all') return 'Todos os Itens';
+    const nb = notebooks.find(n => n.id === notebookId);
+    return nb?.name || 'Todos os Itens';
+  }, [notebooks, notebookId]);
+
   useEffect(() => {
     const loadDb = async () => {
       try {
         await db.init();
         const data = await db.getEntries();
+        const nbData = await db.getNotebooks();
         setEntries(data);
+        setNotebooks(nbData);
       } catch (e: any) {
         console.error('DB Init Error:', e);
         alert(`DB Init Error: ${e?.message || JSON.stringify(e)}`);
@@ -35,10 +44,14 @@ export function HomeScreen() {
     };
     loadDb();
 
-    // Listener for updates from EntryDetailScreen
+    // Listener for updates from EntryDetailScreen and AppDrawer
     const handleUpdate = () => loadDb();
     window.addEventListener('entries-updated', handleUpdate);
-    return () => window.removeEventListener('entries-updated', handleUpdate);
+    window.addEventListener('notebooks-updated', handleUpdate);
+    return () => {
+      window.removeEventListener('entries-updated', handleUpdate);
+      window.removeEventListener('notebooks-updated', handleUpdate);
+    };
   }, []);
 
   const handleCreate = (type: 'task' | 'note' | 'reasoningLine') => {
@@ -73,7 +86,7 @@ export function HomeScreen() {
             <Menu className="w-6 h-6 text-gray-700 dark:text-gray-200" />
           </button>
           <h1 className="text-lg font-semibold text-gray-900 dark:text-white truncate">
-            Open Task Manager
+            {notebookName}
           </h1>
         </div>
       </header>
@@ -98,57 +111,48 @@ export function HomeScreen() {
               <div 
                 key={entry.id}
                 onClick={() => navigate(`/entry/${entry.id}`)}
-                className="flex items-start gap-4 p-4 border-b last:border-b-0 border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer"
+                className={`group flex items-start gap-3 p-4 border-b last:border-b-0 border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer ${
+                  entry.type === 'task' && entry.isCompleted ? 'opacity-75 bg-gray-50/50 dark:bg-gray-950/50' : ''
+                }`}
               >
                 {/* Ícone / Checkbox */}
                 <div className="mt-0.5 shrink-0">
                   {entry.type === 'task' ? (
                     <button 
                       onClick={(e) => toggleTask(e, entry.id)}
-                      className={`w-5 h-5 rounded flex items-center justify-center border transition-colors ${
+                      className={`flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${
                         entry.isCompleted 
                           ? 'bg-indigo-500 border-indigo-500 text-white' 
-                          : 'border-gray-300 dark:border-gray-600 text-transparent hover:border-indigo-400'
+                          : 'border-gray-300 dark:border-gray-600 hover:border-indigo-400 dark:hover:border-indigo-500 text-transparent'
                       }`}
                     >
-                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                      </svg>
+                      <Check className="w-4 h-4" />
                     </button>
                   ) : entry.type === 'reasoningLine' ? (
-                    <div className="w-5 h-5 flex items-center justify-center text-gray-400">
-                      <Map className="w-4 h-4" />
+                    <div className="flex-shrink-0 w-6 h-6 flex items-center justify-center text-emerald-500">
+                      <Map className="w-5 h-5" />
                     </div>
                   ) : (
-                    <div className="w-5 h-5 flex items-center justify-center text-gray-400">
-                      <BookOpen className="w-4 h-4" />
+                    <div className="flex-shrink-0 w-6 h-6 flex items-center justify-center text-indigo-400">
+                      <FileText className="w-5 h-5" />
                     </div>
                   )}
                 </div>
                 
                 {/* Título e Metadados */}
                 <div className="flex-1 min-w-0">
-                  <h3 className={`text-[15px] font-medium truncate transition-all ${
-                    entry.isCompleted 
-                      ? 'text-gray-400 dark:text-gray-600 line-through' 
+                  <h3 className={`text-[15px] font-medium leading-tight transition-colors break-words ${
+                    entry.type === 'task' && entry.isCompleted 
+                      ? 'text-gray-400 dark:text-gray-500 line-through' 
                       : 'text-gray-800 dark:text-gray-200'
                   }`}>
                     {entry.title || <span className="text-gray-400 italic">Sem título</span>}
                   </h3>
-                  {entry.type === 'note' && (
-                    <span className="inline-block mt-1 text-[11px] font-semibold tracking-wider uppercase text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded-full">
-                      Anotação
-                    </span>
-                  )}
-                  {entry.type === 'task' && (
-                    <span className="inline-block mt-1 text-[11px] font-semibold tracking-wider uppercase text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 px-2 py-0.5 rounded-full">
-                      Tarefa
-                    </span>
-                  )}
-                  {entry.type === 'reasoningLine' && (
-                    <span className="inline-block mt-1 text-[11px] font-semibold tracking-wider uppercase text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 px-2 py-0.5 rounded-full">
-                      Linha de Raciocínio
-                    </span>
+                  
+                  {entry.content && entry.type !== 'reasoningLine' && (
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 line-clamp-2 break-words">
+                      {entry.content}
+                    </p>
                   )}
                 </div>
               </div>

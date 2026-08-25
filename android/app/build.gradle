@@ -1,16 +1,8 @@
 apply plugin: 'com.android.application'
 
-def buildTime = System.currentTimeMillis()
-def autoVersionCode = (buildTime / 1000).toInteger()
-def calendar = java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("America/Sao_Paulo"))
-calendar.setTimeInMillis(buildTime)
-def yy = calendar.get(java.util.Calendar.YEAR) % 100
-def mm = calendar.get(java.util.Calendar.MONTH) + 1
-def d = calendar.get(java.util.Calendar.DAY_OF_MONTH)
-def h = calendar.get(java.util.Calendar.HOUR_OF_DAY)
-def m = calendar.get(java.util.Calendar.MINUTE)
-def buildNum = (d - 1) * 1440 + h * 60 + m
-def autoVersionName = "${yy}.${mm}.${buildNum}"
+def autoVersionName = "node ../scripts/get-version.js".execute().text.trim()
+def autoVersionCodeStr = "node ../scripts/get-version.js --code".execute().text.trim()
+def autoVersionCode = autoVersionCodeStr.isInteger() ? autoVersionCodeStr.toInteger() : 1
 
 android {
     namespace = "open.task.manager"

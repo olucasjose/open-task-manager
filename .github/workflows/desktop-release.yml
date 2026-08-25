@@ -54,11 +54,18 @@ jobs:
       - name: build tauri app
         run: pnpm tauri build ${{ matrix.args }}
 
+      - name: Rename DEB Artifact
+        if: matrix.platform == 'ubuntu-24.04'
+        run: |
+          VERSION=$(node scripts/get-version.js)
+          DEB_FILE=$(ls src-tauri/target/release/bundle/deb/*.deb | head -n 1)
+          mv "$DEB_FILE" "src-tauri/target/release/bundle/deb/otm_${VERSION}_release.deb"
+
       - name: Upload Desktop Artifacts
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
         with:
           name: open-task-manager-desktop-release
           path: |
-            src-tauri/target/release/bundle/deb/*.deb
+            src-tauri/target/release/bundle/deb/otm_*_release.deb
           archive: false
           retention-days: 1

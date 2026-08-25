@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { BookOpen, CheckSquare, Map, Trash2, RefreshCw, Menu } from 'lucide-react';
+import { Check, FileText, Map, Trash2, RefreshCw, Menu } from 'lucide-react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import { db } from '../lib/db';
 import type { Entry } from '../types';
@@ -111,20 +111,26 @@ export function TrashScreen() {
               <div 
                 key={entry.id}
                 onClick={() => navigate(`/entry/${entry.id}`)}
-                className="flex items-center gap-4 p-4 border-b last:border-b-0 border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer"
+                className="group flex items-start gap-3 p-4 border-b last:border-b-0 border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer"
               >
-                <div className="shrink-0">
+                <div className="mt-0.5 shrink-0">
                   {entry.type === 'task' ? (
-                    <CheckSquare className="w-5 h-5 text-gray-400" />
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center border-gray-300 dark:border-gray-600 text-transparent">
+                      <Check className="w-4 h-4" />
+                    </div>
                   ) : entry.type === 'reasoningLine' ? (
-                    <Map className="w-5 h-5 text-gray-400" />
+                    <div className="flex-shrink-0 w-6 h-6 flex items-center justify-center text-emerald-500">
+                      <Map className="w-5 h-5" />
+                    </div>
                   ) : (
-                    <BookOpen className="w-5 h-5 text-gray-400" />
+                    <div className="flex-shrink-0 w-6 h-6 flex items-center justify-center text-indigo-400">
+                      <FileText className="w-5 h-5" />
+                    </div>
                   )}
                 </div>
                 
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-[15px] font-medium text-gray-800 dark:text-gray-200 truncate">
+                  <h3 className="text-[15px] font-medium leading-tight text-gray-800 dark:text-gray-200 break-words">
                     {entry.title || <span className="text-gray-400 italic">Sem título</span>}
                   </h3>
                   <p className="text-xs text-gray-400 mt-1">

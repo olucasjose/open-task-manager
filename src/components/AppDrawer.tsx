@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Book, Inbox, Trash2, Folder, Plus, X, Check, MoreVertical, Edit2, ChevronRight, ChevronDown, FileText, CheckSquare, Map } from 'lucide-react';
+import { Book, Inbox, Trash2, Folder, Plus, X, Check, MoreVertical, Edit2, ChevronRight, ChevronDown, FileText, Map } from 'lucide-react';
 import { db } from '../lib/db';
 import type { Notebook, Entry } from '../types';
 
@@ -111,8 +111,16 @@ export function AppDrawer({ isOpen = false, onClose }: AppDrawerProps) {
       <aside 
         className={`fixed top-0 left-0 h-screen w-72 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 z-50 flex flex-col transition-transform duration-300 ease-in-out ${!isOpen ? "-translate-x-full" : "translate-x-0 shadow-2xl"} md:translate-x-0 md:sticky md:flex md:w-64 md:shadow-none`}
       >
-        <div className="p-4 border-b border-gray-200 dark:border-gray-800 flex items-center h-16 shrink-0 transition-colors">
-          <h1 className="text-xl font-bold text-gray-800 dark:text-gray-100 tracking-tight">Open Task Manager</h1>
+        <div className="p-4 border-b border-gray-200 dark:border-gray-800 shrink-0">
+          <Link
+            to="/notebook/all"
+            draggable={false}
+            className={`flex items-center gap-2 px-2 py-3 rounded-lg font-medium transition-colors group ${location.pathname === '/notebook/all' ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800/50'}`}
+          >
+            <div className="w-6 h-6 shrink-0" />
+            <Inbox className="w-5 h-5 shrink-0" />
+            <span className="flex-1 truncate">Todos os Itens</span>
+          </Link>
         </div>
         
         <nav className="flex-1 overflow-y-auto p-4 space-y-6">
@@ -121,16 +129,7 @@ export function AppDrawer({ isOpen = false, onClose }: AppDrawerProps) {
               Meus Cadernos
             </h3>
             <div className="space-y-1">
-              <Link
-                to="/notebook/all"
-                draggable={false}
-                className={`flex items-center gap-2 px-2 py-3 rounded-lg font-medium transition-colors group ${location.pathname === '/notebook/all' ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800/50'}`}
-              >
-                <div className="w-6 h-6 shrink-0" />
-                <Inbox className="w-5 h-5 shrink-0" />
-                <span className="flex-1 truncate">Todos os Itens</span>
-              </Link>
-              
+
               {notebooks.map((notebook) => {
                 const path = `/notebook/${notebook.id}`;
                 const isActive = location.pathname === path;
@@ -252,7 +251,6 @@ export function AppDrawer({ isOpen = false, onClose }: AppDrawerProps) {
                       <div className="flex flex-col pl-11 pr-2 space-y-1 mb-2 border-l-2 border-gray-100 dark:border-gray-800 ml-4">
                         {notebookEntries.map(entry => {
                           const isEntryActive = location.pathname === `/entry/${entry.id}`;
-                          const EntryIcon = entry.type === 'task' ? CheckSquare : entry.type === 'note' ? FileText : Map;
                           
                           return (
                             <Link
@@ -261,7 +259,17 @@ export function AppDrawer({ isOpen = false, onClose }: AppDrawerProps) {
                               draggable={false}
                               className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isEntryActive ? 'bg-indigo-50/50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800/50 hover:text-gray-700 dark:hover:text-gray-200'}`}
                             >
-                              <EntryIcon className="w-4 h-4 shrink-0 opacity-70" />
+                              <div className="shrink-0 flex items-center justify-center">
+                                {entry.type === 'task' ? (
+                                  <div className={`w-4 h-4 rounded-full border-[1.5px] flex items-center justify-center ${entry.isCompleted ? 'bg-indigo-500 border-indigo-500 text-white' : 'border-gray-400 dark:border-gray-500 text-transparent'}`}>
+                                    <Check className="w-2.5 h-2.5" />
+                                  </div>
+                                ) : entry.type === 'reasoningLine' ? (
+                                  <Map className="w-4 h-4 text-emerald-500 opacity-90" />
+                                ) : (
+                                  <FileText className="w-4 h-4 text-indigo-400 opacity-90" />
+                                )}
+                              </div>
                               <span className="truncate">{entry.title || (entry.type === 'task' ? 'Nova Tarefa' : entry.type === 'reasoningLine' ? 'Nova Linha de Raciocínio' : 'Nova Anotação')}</span>
                             </Link>
                           );
