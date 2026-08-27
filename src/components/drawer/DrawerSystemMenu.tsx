@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Settings } from 'lucide-react';
 
 export function DrawerSystemMenu() {
   const location = useLocation();
@@ -17,6 +17,14 @@ export function DrawerSystemMenu() {
         >
           <Trash2 className="w-5 h-5" />
           Lixeira
+        </Link>
+        <Link
+          to="/settings"
+          draggable={false}
+          className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors ${location.pathname === '/settings' ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800/50'}`}
+        >
+          <Settings className="w-5 h-5" />
+          Configurações
         </Link>
       </div>
     </div>

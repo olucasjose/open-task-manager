@@ -6,6 +6,7 @@ import { App as CapacitorApp } from '@capacitor/app';
 import { HomeScreen } from './pages/HomeScreen';
 import { EntryDetailScreen } from './pages/EntryDetailScreen';
 import { TrashScreen } from './pages/TrashScreen';
+import { SettingsScreen } from './pages/SettingsScreen';
 import { MainLayout } from './layouts/MainLayout';
 import { db } from './lib/db';
 import { useStore } from './store/useStore';
@@ -82,6 +83,7 @@ function App() {
           <Route path="/" element={<Navigate to="/notebook/all" replace />} />
           <Route path="/notebook/:id" element={<HomeScreen />} />
           <Route path="/trash" element={<TrashScreen />} />
+          <Route path="/settings" element={<SettingsScreen />} />
           <Route path="/entry/:id" element={<EntryDetailScreen />} />
         </Route>
       </Routes>
