@@ -30,6 +30,7 @@ export interface EntryStrategy {
     title: string;
     content: string;
     metadata: any;
+    setMetadata?: (m: any) => void;
     isCompleted?: boolean;
   }) => React.ReactNode;
   
@@ -180,14 +181,14 @@ export const ENTRY_STRATEGIES: Record<string, EntryStrategy> = {
         />
       </>
     ),
-    renderPreview: ({ title, metadata, isCompleted }) => (
+    renderPreview: ({ title, metadata, setMetadata, isCompleted }) => (
       <div className="flex flex-col">
         <h1 className={`text-2xl font-bold mb-6 break-words md:hidden ${isCompleted ? 'text-gray-400 dark:text-gray-500 line-through' : 'text-gray-900 dark:text-gray-100'}`}>
           {title || <span className="text-gray-400 italic">Sem título</span>}
         </h1>
         <ReasoningLineEditor 
           stages={metadata?.stages || []}
-          onChange={() => {}} // Readonly
+          onChange={(stages) => setMetadata ? setMetadata({ ...metadata, stages }) : {}}
           isEditing={false}
         />
       </div>

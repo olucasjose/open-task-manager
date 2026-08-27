@@ -33,7 +33,7 @@ export function EntryDetailScreen() {
     if (isNew || !isLoaded) return;
     
     const target = allEntries.find(e => e.id === id);
-    if (target && !entry) {
+    if (target && (!entry || entry.id !== id)) {
       setEntry(target);
       setTitle(target.title || '');
       setContent(target.content || '');
@@ -168,13 +168,13 @@ export function EntryDetailScreen() {
               })}
             </div>
 
-            {/* PAINEL PREVIEW (Direita) */}
             <div className={`flex-1 flex-col p-6 overflow-y-auto pb-24 md:pb-6 ${!isEditing ? 'flex' : 'hidden md:flex'} md:w-1/2 transition-all bg-gray-50/30 dark:bg-gray-900/10`}>
               {entry || isNew ? (
                 ENTRY_STRATEGIES[currentType]?.renderPreview({
                   title,
                   content,
                   metadata,
+                  setMetadata,
                   isCompleted: entry?.isCompleted
                 })
               ) : (
