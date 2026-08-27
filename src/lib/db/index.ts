@@ -1,33 +1,10 @@
-import { Capacitor } from '@capacitor/core';
 import type { DatabaseAdapter } from './DatabaseAdapter';
-import { WebAdapter } from './WebAdapter';
-import { TauriAdapter } from './TauriAdapter';
-import { CapacitorAdapter } from './CapacitorAdapter';
 import type { Entry, Notebook } from '../../types';
-
-declare global {
-  interface Window {
-    __TAURI_INTERNALS__?: Record<string, unknown>;
-  }
-}
-
+import { currentPlatform } from '../platform';
 class DatabaseFacade implements DatabaseAdapter {
-  private adapter: DatabaseAdapter;
+  private adapter!: DatabaseAdapter;
   private initialized = false;
   private initPromise: Promise<void> | null = null;
-
-  constructor() {
-    if (window.__TAURI_INTERNALS__) {
-      console.log('[DB] Using Tauri SQLite Adapter');
-      this.adapter = new TauriAdapter();
-    } else if (Capacitor.isNativePlatform()) {
-      console.log('[DB] Using Capacitor SQLite Adapter');
-      this.adapter = new CapacitorAdapter();
-    } else {
-      console.log('[DB] Using Web IndexedDB Adapter');
-      this.adapter = new WebAdapter();
-    }
-  }
 
   async init(): Promise<void> {
     if (this.initialized) return;
@@ -35,6 +12,9 @@ class DatabaseFacade implements DatabaseAdapter {
 
     this.initPromise = (async () => {
       try {
+        if (!this.adapter) {
+          this.adapter = await currentPlatform.createDatabaseAdapter();
+        }
         await this.adapter.init();
         this.initialized = true;
       } finally {
