@@ -2,21 +2,35 @@ import { BookOpen, Plus, Menu } from 'lucide-react';
 import { useNavigate, useParams, useOutletContext } from 'react-router-dom';
 import { ENTRY_STRATEGIES } from '../registry/EntryRegistry';
 import { useHomeController } from '../controllers/useHomeController';
+import { useStore } from '../store/useStore';
+import { useServices } from '../hooks/useServices';
 
 export function HomeScreen() {
   const { id: notebookId } = useParams();
   const navigate = useNavigate();
   const { openDrawer } = useOutletContext<{ openDrawer: () => void }>();
 
+  const entries = useStore(state => state.entries);
+  const notebooks = useStore(state => state.notebooks);
+  const isLoaded = useStore(state => state.isLoaded);
+  const { entryService } = useServices();
+
   const {
-    isLoaded,
+    isLoaded: controllerIsLoaded,
     isFabMenuOpen,
     setIsFabMenuOpen,
     visibleEntries,
     notebookName,
     handleCreate,
     toggleTask,
-  } = useHomeController(notebookId);
+  } = useHomeController({
+    notebookId,
+    entries,
+    notebooks,
+    isLoaded,
+    entryService,
+    onNavigateToNewEntry: (url) => navigate(url)
+  });
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-950 transition-colors font-sans">
@@ -38,7 +52,7 @@ export function HomeScreen() {
 
       {/* Conteúdo Principal */}
       <main className="flex-1 overflow-y-auto pb-24">
-        {!isLoaded ? (
+        {!controllerIsLoaded ? (
           <div className="flex-1 flex flex-col items-center justify-center p-6 text-center mt-20">
             <p className="text-gray-500 dark:text-gray-400 font-medium">Carregando...</p>
           </div>
@@ -61,7 +75,7 @@ export function HomeScreen() {
                 }`}
               >
                 <div className="mt-0.5 shrink-0">
-                  {ENTRY_STRATEGIES[entry.type]?.renderListIcon(entry, { onClick: (e: React.MouseEvent) => toggleTask(e, entry.id) }) || ENTRY_STRATEGIES.note.renderListIcon(entry)}
+                  {ENTRY_STRATEGIES[entry.type]?.renderListIcon(entry, { onClick: (e: React.MouseEvent) => { e.stopPropagation(); toggleTask(entry.id); } }) || ENTRY_STRATEGIES.note.renderListIcon(entry)}
                 </div>
                 
                 {/* Título e Metadados */}

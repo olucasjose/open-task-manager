@@ -1,25 +1,29 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import type { Entry } from '../types';
 import { ENTRY_STRATEGIES } from '../registry/EntryRegistry';
-import { useStore } from '../store/useStore';
-import { useServices } from '../hooks/useServices';
+import type { EntryService } from '../services/EntryService';
 
 interface UseEntryDetailControllerProps {
   id?: string;
   initialType?: 'task' | 'note' | 'reasoningLine';
   notebookId?: string | null;
+  allEntries: Entry[];
+  isLoaded: boolean;
+  entryService: EntryService;
+  onNavigateBack: () => void;
 }
 
-export function useEntryDetailController({ id, initialType = 'note', notebookId }: UseEntryDetailControllerProps) {
-  const { entryService } = useServices();
-  const navigate = useNavigate();
-
+export function useEntryDetailController({ 
+  id, 
+  initialType = 'note', 
+  notebookId,
+  allEntries,
+  isLoaded,
+  entryService,
+  onNavigateBack
+}: UseEntryDetailControllerProps) {
   const isNew = id === 'new';
   const isReasoningLine = initialType === 'reasoningLine';
-
-  const allEntries = useStore(state => state.entries);
-  const isLoaded = useStore(state => state.isLoaded);
 
   const [isLoading, setIsLoading] = useState(!isNew);
   const [entry, setEntry] = useState<Entry | null>(null);
@@ -95,7 +99,7 @@ export function useEntryDetailController({ id, initialType = 'note', notebookId 
         return;
       }
     }
-    navigate(-1);
+    onNavigateBack();
   };
 
   const handleDelete = async () => {
@@ -106,7 +110,7 @@ export function useEntryDetailController({ id, initialType = 'note', notebookId 
       if (!confirm) return;
       try {
         await entryService.deleteEntry(entry.id);
-        navigate(-1);
+        onNavigateBack();
       } catch (error) {
         console.error('Erro ao deletar entrada:', error);
       }
@@ -115,7 +119,7 @@ export function useEntryDetailController({ id, initialType = 'note', notebookId 
       if (!confirm) return;
       try {
         await entryService.moveToTrash(entry);
-        navigate(-1);
+        onNavigateBack();
       } catch (error) {
         console.error('Erro ao mover para a lixeira:', error);
       }

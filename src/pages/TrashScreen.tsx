@@ -2,18 +2,23 @@ import { Trash2, RefreshCw, Menu } from 'lucide-react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import { ENTRY_STRATEGIES } from '../registry/EntryRegistry';
 import { useTrashController } from '../controllers/useTrashController';
+import { useStore } from '../store/useStore';
+import { useServices } from '../hooks/useServices';
 
 export function TrashScreen() {
   const navigate = useNavigate();
   const { openDrawer } = useOutletContext<{ openDrawer: () => void }>();
 
+  const allEntries = useStore(state => state.entries);
+  const isLoaded = useStore(state => state.isLoaded);
+  const { entryService } = useServices();
+
   const {
-    isLoaded,
     entries,
     handleRestore,
     handleHardDelete,
     handleEmptyTrash,
-  } = useTrashController();
+  } = useTrashController({ allEntries, isLoaded, entryService });
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-950 transition-colors font-sans">
@@ -76,14 +81,14 @@ export function TrashScreen() {
 
                 <div className="flex items-center gap-2">
                   <button 
-                    onClick={(e) => handleRestore(e, entry)}
+                    onClick={(e) => { e.stopPropagation(); handleRestore(entry); }}
                     className="p-2 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg transition-colors"
                     title="Restaurar"
                   >
                     <RefreshCw className="w-4 h-4" />
                   </button>
                   <button 
-                    onClick={(e) => handleHardDelete(e, entry.id)}
+                    onClick={(e) => { e.stopPropagation(); handleHardDelete(entry.id); }}
                     className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
                     title="Excluir Definitivamente"
                   >

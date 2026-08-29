@@ -1,16 +1,17 @@
-import { useStore } from '../store/useStore';
-import { useServices } from '../hooks/useServices';
 import type { Entry } from '../types';
+import type { EntryService } from '../services/EntryService';
 
-export function useTrashController() {
-  const { entryService } = useServices();
-  const allEntries = useStore(state => state.entries);
-  const isLoaded = useStore(state => state.isLoaded);
-  
+interface UseTrashControllerProps {
+  allEntries: Entry[];
+  isLoaded: boolean;
+  entryService: EntryService;
+}
+
+export function useTrashController({ allEntries, isLoaded, entryService }: UseTrashControllerProps) {
+
   const entries = allEntries.filter(e => e.trashedAt);
 
-  const handleRestore = async (e: React.MouseEvent, entry: Entry) => {
-    e.stopPropagation();
+  const handleRestore = async (entry: Entry) => {
     try {
       await entryService.restoreEntry(entry);
     } catch (err: any) {
@@ -19,8 +20,7 @@ export function useTrashController() {
     }
   };
 
-  const handleHardDelete = async (e: React.MouseEvent, id: string) => {
-    e.stopPropagation();
+  const handleHardDelete = async (id: string) => {
     const confirm = window.confirm("Deseja excluir permanentemente este item? Esta ação não pode ser desfeita.");
     if (!confirm) return;
     try {

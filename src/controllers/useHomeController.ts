@@ -1,16 +1,25 @@
 import { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useStore } from '../store/useStore';
-import { useServices } from '../hooks/useServices';
+import type { Entry, Notebook } from '../types';
+import type { EntryService } from '../services/EntryService';
 
-export function useHomeController(notebookId?: string) {
-  const { entryService } = useServices();
-  const entries = useStore(state => state.entries);
-  const notebooks = useStore(state => state.notebooks);
-  const isLoaded = useStore(state => state.isLoaded);
-  
+interface UseHomeControllerProps {
+  notebookId?: string;
+  entries: Entry[];
+  notebooks: Notebook[];
+  isLoaded: boolean;
+  entryService: EntryService;
+  onNavigateToNewEntry: (url: string) => void;
+}
+
+export function useHomeController({
+  notebookId,
+  entries,
+  notebooks,
+  isLoaded,
+  entryService,
+  onNavigateToNewEntry
+}: UseHomeControllerProps) {
   const [isFabMenuOpen, setIsFabMenuOpen] = useState(false);
-  const navigate = useNavigate();
 
   const visibleEntries = useMemo(() => {
     let filtered = entries.filter(e => !e.trashedAt);
@@ -28,11 +37,10 @@ export function useHomeController(notebookId?: string) {
 
   const handleCreate = (type: 'task' | 'note' | 'reasoningLine') => {
     setIsFabMenuOpen(false);
-    navigate(`/entry/new?type=${type}${notebookId && notebookId !== 'all' ? `&notebookId=${notebookId}` : ''}`);
+    onNavigateToNewEntry(`/entry/new?type=${type}${notebookId && notebookId !== 'all' ? `&notebookId=${notebookId}` : ''}`);
   };
 
-  const toggleTask = async (e: React.MouseEvent, id: string) => {
-    e.stopPropagation();
+  const toggleTask = async (id: string) => {
     try {
       const entry = entries.find(en => en.id === id);
       if (!entry) return;

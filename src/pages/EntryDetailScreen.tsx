@@ -1,16 +1,23 @@
-import { useParams, useSearchParams } from 'react-router-dom';
+import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { TopAppBar } from '../components/TopAppBar';
 import { Edit2, Trash2 } from 'lucide-react';
 
 import { ENTRY_STRATEGIES } from '../registry/EntryRegistry';
 import { useEntryDetailController } from '../controllers/useEntryDetailController';
+import { useStore } from '../store/useStore';
+import { useServices } from '../hooks/useServices';
 
 export function EntryDetailScreen() {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   
   const initialType = (searchParams.get('type') as 'task' | 'note' | 'reasoningLine') || 'note';
   const notebookId = searchParams.get('notebookId');
+
+  const allEntries = useStore(state => state.entries);
+  const isLoaded = useStore(state => state.isLoaded);
+  const { entryService } = useServices();
 
   const {
     isNew,
@@ -27,7 +34,15 @@ export function EntryDetailScreen() {
     currentType,
     handleBack,
     handleDelete
-  } = useEntryDetailController({ id, initialType, notebookId });
+  } = useEntryDetailController({ 
+    id, 
+    initialType, 
+    notebookId,
+    allEntries,
+    isLoaded,
+    entryService,
+    onNavigateBack: () => navigate(-1)
+  });
 
   const typeLabel = ENTRY_STRATEGIES[currentType]?.label || 'Item';
 
