@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Menu, ChevronDown } from 'lucide-react';
 import { useOutletContext } from 'react-router-dom';
-import { useTheme } from '../hooks/useTheme';
+import { useSettingsController } from '../controllers/useSettingsController';
 
 function SettingsSection({ title, description, children, defaultOpen = false }: { title: string, description: string, children: React.ReactNode, defaultOpen?: boolean }) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
@@ -28,7 +28,7 @@ function SettingsSection({ title, description, children, defaultOpen = false }: 
 
 export function SettingsScreen() {
   const { openDrawer } = useOutletContext<{ openDrawer: () => void }>();
-  const { isDarkMode, toggleTheme } = useTheme();
+  const { isDarkMode, toggleTheme } = useSettingsController();
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-950 transition-colors font-sans">

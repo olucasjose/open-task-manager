@@ -1,52 +1,22 @@
-import { useState, useMemo } from 'react';
 import { BookOpen, Plus, Menu } from 'lucide-react';
 import { useNavigate, useParams, useOutletContext } from 'react-router-dom';
 import { ENTRY_STRATEGIES } from '../registry/EntryRegistry';
-import { useStore } from '../store/useStore';
-import { useServices } from '../hooks/useServices';
+import { useHomeController } from '../controllers/useHomeController';
 
 export function HomeScreen() {
-  const { entryService } = useServices();
-  const entries = useStore(state => state.entries);
-  const notebooks = useStore(state => state.notebooks);
-  const isLoaded = useStore(state => state.isLoaded);
-  
-  const [isFabMenuOpen, setIsFabMenuOpen] = useState(false);
-  const navigate = useNavigate();
   const { id: notebookId } = useParams();
+  const navigate = useNavigate();
   const { openDrawer } = useOutletContext<{ openDrawer: () => void }>();
 
-  const visibleEntries = useMemo(() => {
-    let filtered = entries.filter(e => !e.trashedAt);
-    if (notebookId && notebookId !== 'all') {
-      filtered = filtered.filter(e => e.notebookId === notebookId);
-    }
-    return filtered;
-  }, [entries, notebookId]);
-
-  const notebookName = useMemo(() => {
-    if (!notebookId || notebookId === 'all') return 'Todos os Itens';
-    const nb = notebooks.find(n => n.id === notebookId);
-    return nb?.name || 'Todos os Itens';
-  }, [notebooks, notebookId]);
-
-
-  const handleCreate = (type: 'task' | 'note' | 'reasoningLine') => {
-    setIsFabMenuOpen(false);
-    navigate(`/entry/new?type=${type}${notebookId && notebookId !== 'all' ? `&notebookId=${notebookId}` : ''}`);
-  };
-
-  const toggleTask = async (e: React.MouseEvent, id: string) => {
-    e.stopPropagation();
-    try {
-      const entry = entries.find(en => en.id === id);
-      if (!entry) return;
-      await entryService.updateEntry({ ...entry, isCompleted: !entry.isCompleted });
-    } catch (err: any) {
-      console.error(err);
-      alert(`Erro ao atualizar item: ${err?.message || JSON.stringify(err)}`);
-    }
-  };
+  const {
+    isLoaded,
+    isFabMenuOpen,
+    setIsFabMenuOpen,
+    visibleEntries,
+    notebookName,
+    handleCreate,
+    toggleTask,
+  } = useHomeController(notebookId);
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-950 transition-colors font-sans">
