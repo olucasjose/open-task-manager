@@ -1,11 +1,12 @@
 import { Trash2, RefreshCw, Menu } from 'lucide-react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
-import { db } from '../lib/db';
 import type { Entry } from '../types';
 import { ENTRY_STRATEGIES } from '../registry/EntryRegistry';
 import { useStore } from '../store/useStore';
+import { useServices } from '../hooks/useServices';
 
 export function TrashScreen() {
+  const { entryService } = useServices();
   const allEntries = useStore(state => state.entries);
   const isLoaded = useStore(state => state.isLoaded);
   const entries = allEntries.filter(e => e.trashedAt);
@@ -17,8 +18,7 @@ export function TrashScreen() {
   const handleRestore = async (e: React.MouseEvent, entry: Entry) => {
     e.stopPropagation();
     try {
-      await db.updateEntry({ ...entry, trashedAt: undefined });
-      useStore.getState().refresh();
+      await entryService.restoreEntry(entry);
     } catch (err: any) {
       console.error(err);
       alert(`Erro ao restaurar: ${err?.message || JSON.stringify(err)}`);
@@ -30,8 +30,7 @@ export function TrashScreen() {
     const confirm = window.confirm("Deseja excluir permanentemente este item? Esta ação não pode ser desfeita.");
     if (!confirm) return;
     try {
-      await db.deleteEntry(id);
-      useStore.getState().refresh();
+      await entryService.deleteEntry(id);
     } catch (err: any) {
       console.error(err);
       alert(`Erro ao excluir: ${err?.message || JSON.stringify(err)}`);
@@ -42,10 +41,7 @@ export function TrashScreen() {
     const confirm = window.confirm("Deseja esvaziar a lixeira? Todos os itens serão excluídos permanentemente.");
     if (!confirm) return;
     try {
-      for (const entry of entries) {
-        await db.deleteEntry(entry.id);
-      }
-      useStore.getState().refresh();
+      await entryService.emptyTrash(entries);
     } catch (err: any) {
       console.error(err);
     }

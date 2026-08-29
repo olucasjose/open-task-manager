@@ -1,10 +1,14 @@
 import { useState } from 'react';
 import { Folder, Check, X, Plus } from 'lucide-react';
-import { db } from '../../lib/db';
 import type { Notebook } from '../../types';
-import { useStore } from '../../store/useStore';
+import { useServices } from '../../hooks/useServices';
 
-export function DrawerCreateNotebook() {
+interface DrawerCreateNotebookProps {
+  onCreated?: () => void;
+}
+
+export function DrawerCreateNotebook({ onCreated }: DrawerCreateNotebookProps) {
+  const { notebookService } = useServices();
   const [isCreating, setIsCreating] = useState(false);
   const [newNotebookName, setNewNotebookName] = useState('');
 
@@ -14,17 +18,17 @@ export function DrawerCreateNotebook() {
       return;
     }
     try {
-      const nb: Notebook = {
+      const newNotebook: Notebook = {
         id: Date.now().toString(),
         name: newNotebookName.trim(),
         icon: 'Book',
         createdAt: Date.now(),
         updatedAt: Date.now(),
       };
-      await db.createNotebook(nb);
+      await notebookService.createNotebook(newNotebook);
       setNewNotebookName('');
       setIsCreating(false);
-      useStore.getState().refresh();
+      onCreated?.();
     } catch (err) {
       console.error('Erro ao criar caderno', err);
     }

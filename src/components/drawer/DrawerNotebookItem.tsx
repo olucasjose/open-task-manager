@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Book, X, Check, MoreVertical, Edit2, Trash2, ChevronRight, ChevronDown } from 'lucide-react';
-import { db } from '../../lib/db';
 import type { Notebook, Entry } from '../../types';
 import { ENTRY_STRATEGIES } from '../../registry/EntryRegistry';
-import { useStore } from '../../store/useStore';
+import { useServices } from '../../hooks/useServices';
 
 interface DrawerNotebookItemProps {
   notebook: Notebook;
@@ -12,6 +11,7 @@ interface DrawerNotebookItemProps {
 }
 
 export function DrawerNotebookItem({ notebook, notebookEntries }: DrawerNotebookItemProps) {
+  const { notebookService } = useServices();
   const location = useLocation();
   const navigate = useNavigate();
   
@@ -43,9 +43,8 @@ export function DrawerNotebookItem({ notebook, notebookEntries }: DrawerNotebook
           onChange={(e) => setEditName(e.target.value)}
           onKeyDown={async (e) => {
             if (e.key === 'Enter' && editName.trim()) {
-              await db.updateNotebook({ ...notebook, name: editName });
+              await notebookService.updateNotebook({ ...notebook, name: editName });
               setIsEditing(false);
-              useStore.getState().refresh();
             }
             if (e.key === 'Escape') setIsEditing(false);
           }}
@@ -56,9 +55,8 @@ export function DrawerNotebookItem({ notebook, notebookEntries }: DrawerNotebook
         <button 
           onClick={async () => {
             if (editName.trim()) {
-              await db.updateNotebook({ ...notebook, name: editName });
+              await notebookService.updateNotebook({ ...notebook, name: editName });
               setIsEditing(false);
-              useStore.getState().refresh();
             }
           }} 
           className="p-1 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 rounded-md shrink-0 transition-colors"
@@ -131,12 +129,7 @@ export function DrawerNotebookItem({ notebook, notebookEntries }: DrawerNotebook
                      e.stopPropagation();
                      setIsMenuOpen(false);
                      if(window.confirm(`Tem certeza que deseja excluir "${notebook.name}" e enviar seus itens para a lixeira?`)) {
-                       // Cascade delete
-                       await db.deleteNotebook(notebook.id);
-                       for (const entry of notebookEntries) {
-                         await db.updateEntry({ ...entry, notebookId: undefined, trashedAt: Date.now() });
-                       }
-                       useStore.getState().refresh();
+                       await notebookService.deleteNotebookWithCascade(notebook.id, notebookEntries);
                        navigate('/notebook/all');
                      }
                    }} 

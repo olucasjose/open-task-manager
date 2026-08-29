@@ -8,7 +8,8 @@ import { EntryDetailScreen } from './pages/EntryDetailScreen';
 import { TrashScreen } from './pages/TrashScreen';
 import { SettingsScreen } from './pages/SettingsScreen';
 import { MainLayout } from './layouts/MainLayout';
-import { db } from './lib/db';
+import { DatabaseFacade } from './lib/db';
+import { DatabaseProvider } from './contexts/DatabaseContext';
 import { useStore } from './store/useStore';
 
 function BackButtonHandler() {
@@ -41,14 +42,17 @@ function BackButtonHandler() {
 }
 
 function App() {
+  const [database] = useState(() => new DatabaseFacade());
   const [isDbReady, setIsDbReady] = useState(false);
   const [dbError, setDbError] = useState<string | null>(null);
 
   useEffect(() => {
-    db.init()
+    database.init()
       .then(() => {
         setIsDbReady(true);
-        useStore.getState().refresh();
+        Promise.all([database.getEntries(), database.getNotebooks()]).then(([entries, notebooks]) => {
+          useStore.getState().setStoreData(entries, notebooks);
+        });
       })
       .catch((e) => {
         console.error('Failed to initialize database', e);
@@ -76,18 +80,20 @@ function App() {
   }
 
   return (
-    <BrowserRouter>
-      <BackButtonHandler />
-      <Routes>
-        <Route element={<MainLayout />}>
-          <Route path="/" element={<Navigate to="/notebook/all" replace />} />
-          <Route path="/notebook/:id" element={<HomeScreen />} />
-          <Route path="/trash" element={<TrashScreen />} />
-          <Route path="/settings" element={<SettingsScreen />} />
-          <Route path="/entry/:id" element={<EntryDetailScreen />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+    <DatabaseProvider db={database}>
+      <BrowserRouter>
+        <BackButtonHandler />
+        <Routes>
+          <Route element={<MainLayout />}>
+            <Route path="/" element={<Navigate to="/notebook/all" replace />} />
+            <Route path="/notebook/:id" element={<HomeScreen />} />
+            <Route path="/trash" element={<TrashScreen />} />
+            <Route path="/settings" element={<SettingsScreen />} />
+            <Route path="/entry/:id" element={<EntryDetailScreen />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </DatabaseProvider>
   );
 }
 

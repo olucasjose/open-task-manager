@@ -3,12 +3,13 @@ import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { TopAppBar } from '../components/TopAppBar';
 import { Edit2, Trash2 } from 'lucide-react';
 
-import { db } from '../lib/db';
 import type { Entry } from '../types';
 import { ENTRY_STRATEGIES } from '../registry/EntryRegistry';
 import { useStore } from '../store/useStore';
+import { useServices } from '../hooks/useServices';
 
 export function EntryDetailScreen() {
+  const { entryService } = useServices();
   const { id } = useParams();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -59,8 +60,7 @@ export function EntryDetailScreen() {
           createdAt: Date.now(),
           updatedAt: Date.now(),
         };
-        await db.createEntry(newEntry);
-        useStore.getState().refresh();
+        await entryService.createEntry(newEntry);
       } else {
         if (!entry) return;
         const updatedEntry: Entry = {
@@ -70,9 +70,8 @@ export function EntryDetailScreen() {
           metadata,
           updatedAt: Date.now()
         };
-        await db.updateEntry(updatedEntry);
+        await entryService.updateEntry(updatedEntry);
         setEntry(updatedEntry);
-        useStore.getState().refresh();
       }
     } catch (error) {
       console.error('Erro ao salvar entrada:', error);
@@ -108,8 +107,7 @@ export function EntryDetailScreen() {
       const confirm = window.confirm(`Deseja excluir permanentemente este item?`);
       if (!confirm) return;
       try {
-        await db.deleteEntry(entry.id);
-        useStore.getState().refresh();
+        await entryService.deleteEntry(entry.id);
         navigate(-1);
       } catch (error) {
         console.error('Erro ao deletar entrada:', error);
@@ -119,8 +117,7 @@ export function EntryDetailScreen() {
       const confirm = window.confirm(`Deseja enviar este item para a lixeira?`);
       if (!confirm) return;
       try {
-        await db.updateEntry({ ...entry, trashedAt: Date.now() });
-        useStore.getState().refresh();
+        await entryService.moveToTrash(entry);
         navigate(-1);
       } catch (error) {
         console.error('Erro ao mover para a lixeira:', error);

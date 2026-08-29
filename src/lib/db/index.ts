@@ -1,7 +1,7 @@
 import type { DatabaseAdapter } from './DatabaseAdapter';
 import type { Entry, Notebook } from '../../types';
 import { currentPlatform } from '../platform';
-class DatabaseFacade implements DatabaseAdapter {
+export class DatabaseFacade implements DatabaseAdapter {
   private adapter!: DatabaseAdapter;
   private initialized = false;
   private initPromise: Promise<void> | null = null;
@@ -58,4 +58,4 @@ class DatabaseFacade implements DatabaseAdapter {
   }
 }
 
-export const db = new DatabaseFacade();
+

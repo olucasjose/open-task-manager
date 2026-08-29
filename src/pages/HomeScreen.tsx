@@ -1,11 +1,12 @@
 import { useState, useMemo } from 'react';
 import { BookOpen, Plus, Menu } from 'lucide-react';
 import { useNavigate, useParams, useOutletContext } from 'react-router-dom';
-import { db } from '../lib/db';
 import { ENTRY_STRATEGIES } from '../registry/EntryRegistry';
 import { useStore } from '../store/useStore';
+import { useServices } from '../hooks/useServices';
 
 export function HomeScreen() {
+  const { entryService } = useServices();
   const entries = useStore(state => state.entries);
   const notebooks = useStore(state => state.notebooks);
   const isLoaded = useStore(state => state.isLoaded);
@@ -38,11 +39,9 @@ export function HomeScreen() {
   const toggleTask = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
     try {
-      const target = entries.find(en => en.id === id);
-      if (!target) return;
-      const updated = { ...target, isCompleted: !target.isCompleted };
-      await db.updateEntry(updated);
-      useStore.getState().refresh();
+      const entry = entries.find(en => en.id === id);
+      if (!entry) return;
+      await entryService.updateEntry({ ...entry, isCompleted: !entry.isCompleted });
     } catch (err: any) {
       console.error(err);
       alert(`Erro ao atualizar item: ${err?.message || JSON.stringify(err)}`);
