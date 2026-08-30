@@ -3,39 +3,40 @@ import type { Entry } from '../types';
 
 export class EntryService {
   private repository: DatabaseAdapter;
-  private onDataChanged: () => Promise<void>;
-  constructor(repository: DatabaseAdapter, onDataChanged: () => Promise<void>) {
+
+  constructor(repository: DatabaseAdapter) {
     this.repository = repository;
-    this.onDataChanged = onDataChanged;
   }
 
-  async createEntry(entry: Entry): Promise<void> {
+  async createEntry(entry: Entry): Promise<Entry> {
     await this.repository.createEntry(entry);
-    await this.onDataChanged();
+    return entry;
   }
 
-  async updateEntry(entry: Entry): Promise<void> {
+  async updateEntry(entry: Entry): Promise<Entry> {
     await this.repository.updateEntry(entry);
-    await this.onDataChanged();
+    return entry;
   }
 
-  async moveToTrash(entry: Entry): Promise<void> {
-    await this.repository.updateEntry({ ...entry, trashedAt: Date.now() });
-    await this.onDataChanged();
+  async moveToTrash(entry: Entry): Promise<Entry> {
+    const trashedEntry = { ...entry, trashedAt: Date.now() };
+    await this.repository.updateEntry(trashedEntry);
+    return trashedEntry;
   }
 
-  async deleteEntry(id: string): Promise<void> {
+  async deleteEntry(id: string): Promise<string> {
     await this.repository.deleteEntry(id);
-    await this.onDataChanged();
+    return id;
   }
 
-  async restoreEntry(entry: Entry): Promise<void> {
-    await this.repository.updateEntry({ ...entry, trashedAt: undefined });
-    await this.onDataChanged();
+  async restoreEntry(entry: Entry): Promise<Entry> {
+    const restoredEntry = { ...entry, trashedAt: undefined };
+    await this.repository.updateEntry(restoredEntry);
+    return restoredEntry;
   }
 
-  async emptyTrash(entries: Entry[]): Promise<void> {
+  async emptyTrash(entries: Entry[]): Promise<string[]> {
     await Promise.all(entries.map((e) => this.repository.deleteEntry(e.id)));
-    await this.onDataChanged();
+    return entries.map(e => e.id);
   }
 }

@@ -56,6 +56,10 @@ export class DatabaseFacade implements DatabaseAdapter {
   async deleteNotebook(id: string): Promise<void> {
     return this.adapter.deleteNotebook(id);
   }
+
+  async deleteNotebookWithCascade(notebookId: string, trashedEntries: Entry[]): Promise<void> {
+    return this.adapter.deleteNotebookWithCascade(notebookId, trashedEntries);
+  }
 }
 
 

@@ -1,5 +1,6 @@
 import type { Entry } from '../types';
 import type { EntryService } from '../services/EntryService';
+import { useStore } from '../store/useStore';
 
 interface UseTrashControllerProps {
   allEntries: Entry[];
@@ -13,7 +14,8 @@ export function useTrashController({ allEntries, isLoaded, entryService }: UseTr
 
   const handleRestore = async (entry: Entry) => {
     try {
-      await entryService.restoreEntry(entry);
+      const updated = await entryService.restoreEntry(entry);
+      useStore.getState().updateEntry(updated);
     } catch (err: any) {
       console.error(err);
       alert(`Erro ao restaurar: ${err?.message || JSON.stringify(err)}`);
@@ -25,6 +27,7 @@ export function useTrashController({ allEntries, isLoaded, entryService }: UseTr
     if (!confirm) return;
     try {
       await entryService.deleteEntry(id);
+      useStore.getState().removeEntry(id);
     } catch (err: any) {
       console.error(err);
       alert(`Erro ao excluir: ${err?.message || JSON.stringify(err)}`);
@@ -35,7 +38,8 @@ export function useTrashController({ allEntries, isLoaded, entryService }: UseTr
     const confirm = window.confirm("Deseja esvaziar a lixeira? Todos os itens serão excluídos permanentemente.");
     if (!confirm) return;
     try {
-      await entryService.emptyTrash(entries);
+      const deletedIds = await entryService.emptyTrash(entries);
+      deletedIds.forEach(id => useStore.getState().removeEntry(id));
     } catch (err: any) {
       console.error(err);
     }

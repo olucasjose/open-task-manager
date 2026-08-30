@@ -45,4 +45,9 @@ export interface DatabaseAdapter {
    * Deletes a notebook by its ID.
    */
   deleteNotebook(id: string): Promise<void>;
+
+  /**
+   * Deletes a notebook and updates the provided entries (e.g., moving them to trash) in a single transaction.
+   */
+  deleteNotebookWithCascade(notebookId: string, trashedEntries: Entry[]): Promise<void>;
 }

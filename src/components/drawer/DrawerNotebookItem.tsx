@@ -4,6 +4,7 @@ import { Book, X, Check, MoreVertical, Edit2, Trash2, ChevronRight, ChevronDown 
 import type { Notebook, Entry } from '../../types';
 import { ENTRY_STRATEGIES } from '../../registry/EntryRegistry';
 import { useServices } from '../../hooks/useServices';
+import { useStore } from '../../store/useStore';
 
 interface DrawerNotebookItemProps {
   notebook: Notebook;
@@ -43,7 +44,8 @@ export function DrawerNotebookItem({ notebook, notebookEntries }: DrawerNotebook
           onChange={(e) => setEditName(e.target.value)}
           onKeyDown={async (e) => {
             if (e.key === 'Enter' && editName.trim()) {
-              await notebookService.updateNotebook({ ...notebook, name: editName });
+              const updated = await notebookService.updateNotebook({ ...notebook, name: editName });
+              useStore.getState().updateNotebook(updated);
               setIsEditing(false);
             }
             if (e.key === 'Escape') setIsEditing(false);
@@ -55,7 +57,8 @@ export function DrawerNotebookItem({ notebook, notebookEntries }: DrawerNotebook
         <button 
           onClick={async () => {
             if (editName.trim()) {
-              await notebookService.updateNotebook({ ...notebook, name: editName });
+              const updated = await notebookService.updateNotebook({ ...notebook, name: editName });
+              useStore.getState().updateNotebook(updated);
               setIsEditing(false);
             }
           }} 
@@ -129,7 +132,8 @@ export function DrawerNotebookItem({ notebook, notebookEntries }: DrawerNotebook
                      e.stopPropagation();
                      setIsMenuOpen(false);
                      if(window.confirm(`Tem certeza que deseja excluir "${notebook.name}" e enviar seus itens para a lixeira?`)) {
-                       await notebookService.deleteNotebookWithCascade(notebook.id, notebookEntries);
+                       const { deletedNotebookId, trashedEntries } = await notebookService.deleteNotebookWithCascade(notebook.id, notebookEntries);
+                       useStore.getState().cascadeDeleteNotebook(deletedNotebookId, trashedEntries);
                        navigate('/notebook/all');
                      }
                    }} 

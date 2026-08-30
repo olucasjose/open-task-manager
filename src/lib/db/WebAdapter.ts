@@ -70,4 +70,14 @@ export class WebAdapter implements DatabaseAdapter {
     if (!this.db) throw new Error('Database not initialized');
     await this.db.delete('notebooks', id);
   }
+
+  async deleteNotebookWithCascade(notebookId: string, trashedEntries: Entry[]): Promise<void> {
+    if (!this.db) throw new Error('Database not initialized');
+    const tx = this.db.transaction(['notebooks', 'entries'], 'readwrite');
+    await Promise.all([
+      tx.objectStore('notebooks').delete(notebookId),
+      ...trashedEntries.map(entry => tx.objectStore('entries').put({ ...entry, updatedAt: Date.now() }))
+    ]);
+    await tx.done;
+  }
 }

@@ -142,4 +142,21 @@ export class CapacitorAdapter implements DatabaseAdapter {
     if (!this.db) throw new Error('Database not initialized');
     await this.db.run('DELETE FROM notebooks WHERE id = ?', [id]);
   }
+
+  async deleteNotebookWithCascade(notebookId: string, trashedEntries: Entry[]): Promise<void> {
+    if (!this.db) throw new Error('Database not initialized');
+    const set: any[] = [
+      {
+        statement: 'DELETE FROM notebooks WHERE id = ?',
+        values: [notebookId]
+      }
+    ];
+    for (const entry of trashedEntries) {
+      set.push({
+        statement: 'UPDATE entries SET title = ?, type = ?, content = ?, isCompleted = ?, updatedAt = ?, metadata = ?, notebookId = ?, trashedAt = ? WHERE id = ?',
+        values: [entry.title, entry.type, entry.content || '', entry.isCompleted ? 1 : 0, Date.now(), entry.metadata ? JSON.stringify(entry.metadata) : null, entry.notebookId || null, entry.trashedAt || null, entry.id]
+      });
+    }
+    await this.db.executeSet(set);
+  }
 }

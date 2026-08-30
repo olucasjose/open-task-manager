@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Folder, Check, X, Plus } from 'lucide-react';
 import type { Notebook } from '../../types';
 import { useServices } from '../../hooks/useServices';
+import { useStore } from '../../store/useStore';
 
 interface DrawerCreateNotebookProps {
   onCreated?: () => void;
@@ -25,7 +26,8 @@ export function DrawerCreateNotebook({ onCreated }: DrawerCreateNotebookProps) {
         createdAt: Date.now(),
         updatedAt: Date.now(),
       };
-      await notebookService.createNotebook(newNotebook);
+      const saved = await notebookService.createNotebook(newNotebook);
+      useStore.getState().addNotebook(saved);
       setNewNotebookName('');
       setIsCreating(false);
       onCreated?.();

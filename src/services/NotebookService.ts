@@ -3,27 +3,24 @@ import type { Notebook, Entry } from '../types';
 
 export class NotebookService {
   private repository: DatabaseAdapter;
-  private onDataChanged: () => Promise<void>;
-  constructor(repository: DatabaseAdapter, onDataChanged: () => Promise<void>) {
+
+  constructor(repository: DatabaseAdapter) {
     this.repository = repository;
-    this.onDataChanged = onDataChanged;
   }
 
-  async createNotebook(notebook: Notebook): Promise<void> {
+  async createNotebook(notebook: Notebook): Promise<Notebook> {
     await this.repository.createNotebook(notebook);
-    await this.onDataChanged();
+    return notebook;
   }
 
-  async updateNotebook(notebook: Notebook): Promise<void> {
+  async updateNotebook(notebook: Notebook): Promise<Notebook> {
     await this.repository.updateNotebook(notebook);
-    await this.onDataChanged();
+    return notebook;
   }
 
-  async deleteNotebookWithCascade(notebookId: string, notebookEntries: Entry[]): Promise<void> {
-    await Promise.all(
-      notebookEntries.map((e) => this.repository.updateEntry({ ...e, trashedAt: Date.now() }))
-    );
-    await this.repository.deleteNotebook(notebookId);
-    await this.onDataChanged();
+  async deleteNotebookWithCascade(notebookId: string, notebookEntries: Entry[]): Promise<{ deletedNotebookId: string, trashedEntries: Entry[] }> {
+    const trashedEntries = notebookEntries.map((e) => ({ ...e, trashedAt: Date.now() }));
+    await this.repository.deleteNotebookWithCascade(notebookId, trashedEntries);
+    return { deletedNotebookId: notebookId, trashedEntries };
   }
 }

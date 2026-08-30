@@ -117,4 +117,22 @@ export class TauriAdapter implements DatabaseAdapter {
     if (!this.db) throw new Error('Database not initialized');
     await this.db.execute('DELETE FROM notebooks WHERE id = $1', [id]);
   }
+
+  async deleteNotebookWithCascade(notebookId: string, trashedEntries: Entry[]): Promise<void> {
+    if (!this.db) throw new Error('Database not initialized');
+    await this.db.execute('BEGIN TRANSACTION;');
+    try {
+      await this.db.execute('DELETE FROM notebooks WHERE id = $1', [notebookId]);
+      for (const entry of trashedEntries) {
+        await this.db.execute(
+          'UPDATE entries SET title = $1, type = $2, content = $3, isCompleted = $4, updatedAt = $5, metadata = $6, notebookId = $7, trashedAt = $8 WHERE id = $9',
+          [entry.title, entry.type, entry.content || '', entry.isCompleted ? 1 : 0, Date.now(), entry.metadata ? JSON.stringify(entry.metadata) : null, entry.notebookId || null, entry.trashedAt || null, entry.id]
+        );
+      }
+      await this.db.execute('COMMIT;');
+    } catch (e) {
+      await this.db.execute('ROLLBACK;');
+      throw e;
+    }
+  }
 }

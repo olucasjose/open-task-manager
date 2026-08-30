@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import type { Entry, Notebook } from '../types';
 import type { EntryService } from '../services/EntryService';
+import { useStore } from '../store/useStore';
 
 interface UseHomeControllerProps {
   notebookId?: string;
@@ -44,7 +45,8 @@ export function useHomeController({
     try {
       const entry = entries.find(en => en.id === id);
       if (!entry) return;
-      await entryService.updateEntry({ ...entry, isCompleted: !entry.isCompleted });
+      const updated = await entryService.updateEntry({ ...entry, isCompleted: !entry.isCompleted });
+      useStore.getState().updateEntry(updated);
     } catch (err: any) {
       console.error(err);
       alert(`Erro ao atualizar item: ${err?.message || JSON.stringify(err)}`);

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import type { Entry } from '../types';
 import { ENTRY_STRATEGIES } from '../registry/EntryRegistry';
 import type { EntryService } from '../services/EntryService';
+import { useStore } from '../store/useStore';
 
 interface UseEntryDetailControllerProps {
   id?: string;
@@ -63,7 +64,8 @@ export function useEntryDetailController({
           createdAt: Date.now(),
           updatedAt: Date.now(),
         };
-        await entryService.createEntry(newEntry);
+        const saved = await entryService.createEntry(newEntry);
+        useStore.getState().addEntry(saved);
       } else {
         if (!entry) return;
         const updatedEntry: Entry = {
@@ -73,8 +75,9 @@ export function useEntryDetailController({
           metadata,
           updatedAt: Date.now()
         };
-        await entryService.updateEntry(updatedEntry);
-        setEntry(updatedEntry);
+        const saved = await entryService.updateEntry(updatedEntry);
+        useStore.getState().updateEntry(saved);
+        setEntry(saved);
       }
     } catch (error) {
       console.error('Erro ao salvar entrada:', error);
@@ -110,6 +113,7 @@ export function useEntryDetailController({
       if (!confirm) return;
       try {
         await entryService.deleteEntry(entry.id);
+        useStore.getState().removeEntry(entry.id);
         onNavigateBack();
       } catch (error) {
         console.error('Erro ao deletar entrada:', error);
@@ -118,7 +122,8 @@ export function useEntryDetailController({
       const confirm = window.confirm(`Deseja enviar este item para a lixeira?`);
       if (!confirm) return;
       try {
-        await entryService.moveToTrash(entry);
+        const trashed = await entryService.moveToTrash(entry);
+        useStore.getState().updateEntry(trashed);
         onNavigateBack();
       } catch (error) {
         console.error('Erro ao mover para a lixeira:', error);
