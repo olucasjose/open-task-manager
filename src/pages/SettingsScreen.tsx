@@ -26,9 +26,21 @@ function SettingsSection({ title, description, children, defaultOpen = false }: 
   );
 }
 
+import { useStore } from '../store/useStore';
+import { useServices } from '../hooks/useServices';
+
 export function SettingsScreen() {
   const { openDrawer } = useOutletContext<{ openDrawer: () => void }>();
-  const { isDarkMode, toggleTheme } = useSettingsController();
+  const settings = useStore(state => state.settings);
+  const setSettings = useStore(state => state.setSettings);
+  const { settingsService } = useServices();
+  
+  const { 
+    isDarkMode, 
+    toggleTheme,
+    toggleRequireDeleteConfirm,
+    toggleRequireTrashConfirm 
+  } = useSettingsController({ settings, settingsService, onUpdateSettings: setSettings });
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-950 transition-colors font-sans">
@@ -65,6 +77,44 @@ export function SettingsScreen() {
                   className="sr-only peer"
                   checked={isDarkMode}
                   onChange={toggleTheme}
+                />
+                <div className="w-11 h-6 bg-gray-300 dark:bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white dark:peer-checked:after:border-gray-200 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white dark:after:bg-gray-200 after:border-gray-300 dark:after:border-gray-600 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600 dark:peer-checked:bg-indigo-500"></div>
+              </label>
+            </div>
+          </SettingsSection>
+
+          <SettingsSection 
+            title="Comportamento" 
+            description="Configure alertas e confirmações do sistema." 
+            defaultOpen={true}
+          >
+            <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl transition-colors">
+              <div className="flex flex-col pr-4">
+                <span className="font-semibold text-gray-800 dark:text-gray-200">Confirmar exclusão de itens e cadernos</span>
+                <span className="text-sm text-gray-500 dark:text-gray-400">Exibir alerta ao mover itens para a lixeira ou excluir cadernos.</span>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  className="sr-only peer"
+                  checked={settings?.requireDeleteConfirm ?? true}
+                  onChange={toggleRequireDeleteConfirm}
+                />
+                <div className="w-11 h-6 bg-gray-300 dark:bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white dark:peer-checked:after:border-gray-200 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white dark:after:bg-gray-200 after:border-gray-300 dark:after:border-gray-600 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600 dark:peer-checked:bg-indigo-500"></div>
+              </label>
+            </div>
+
+            <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl transition-colors">
+              <div className="flex flex-col pr-4">
+                <span className="font-semibold text-gray-800 dark:text-gray-200">Confirmar exclusão ao esvaziar lixeira</span>
+                <span className="text-sm text-gray-500 dark:text-gray-400">Exibir alerta antes de excluir os itens da lixeira permanentemente.</span>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  className="sr-only peer"
+                  checked={settings?.requireTrashConfirm ?? true}
+                  onChange={toggleRequireTrashConfirm}
                 />
                 <div className="w-11 h-6 bg-gray-300 dark:bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white dark:peer-checked:after:border-gray-200 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white dark:after:bg-gray-200 after:border-gray-300 dark:after:border-gray-600 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600 dark:peer-checked:bg-indigo-500"></div>
               </label>

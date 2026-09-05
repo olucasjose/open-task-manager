@@ -11,6 +11,9 @@ export function TrashScreen() {
 
   const allEntries = useStore(state => state.entries);
   const isLoaded = useStore(state => state.isLoaded);
+  const settings = useStore(state => state.settings);
+  const updateEntry = useStore(state => state.updateEntry);
+  const removeEntry = useStore(state => state.removeEntry);
   const { entryService } = useServices();
 
   const {
@@ -18,7 +21,14 @@ export function TrashScreen() {
     handleRestore,
     handleHardDelete,
     handleEmptyTrash,
-  } = useTrashController({ allEntries, isLoaded, entryService });
+  } = useTrashController({ 
+    allEntries, 
+    isLoaded, 
+    entryService, 
+    settings,
+    onUpdateEntry: updateEntry,
+    onRemoveEntry: removeEntry
+  });
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-950 transition-colors font-sans">

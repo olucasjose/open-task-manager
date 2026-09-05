@@ -11,6 +11,7 @@ import { MainLayout } from './layouts/MainLayout';
 import { DatabaseFacade } from './lib/db';
 import { DatabaseProvider } from './contexts/DatabaseContext';
 import { useStore } from './store/useStore';
+import { SettingsService } from './services/SettingsService';
 
 function BackButtonHandler() {
   const navigate = useNavigate();
@@ -48,8 +49,11 @@ function App() {
 
   useEffect(() => {
     database.init()
-      .then(() => {
+      .then(async () => {
         setIsDbReady(true);
+        const settingsService = new SettingsService();
+        const settings = await settingsService.getSettings();
+        useStore.getState().setSettings(settings);
         Promise.all([database.getEntries(), database.getNotebooks()]).then(([entries, notebooks]) => {
           useStore.getState().setStoreData(entries, notebooks);
         });

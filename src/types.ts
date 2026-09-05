@@ -25,3 +25,8 @@ export interface Entry {
   notebookId?: string;
   trashedAt?: number;
 }
+
+export interface AppSettings {
+  requireDeleteConfirm: boolean;
+  requireTrashConfirm: boolean;
+}

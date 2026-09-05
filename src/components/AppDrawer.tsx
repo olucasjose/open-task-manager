@@ -1,8 +1,10 @@
 import { useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Inbox } from 'lucide-react';
 
 import { useStore } from '../store/useStore';
+import { useServices } from '../hooks/useServices';
+import { useAppDrawerController } from '../controllers/useAppDrawerController';
 import { DrawerNotebookItem } from './drawer/DrawerNotebookItem';
 import { DrawerCreateNotebook } from './drawer/DrawerCreateNotebook';
 import { DrawerSystemMenu } from './drawer/DrawerSystemMenu';
@@ -14,9 +16,22 @@ interface AppDrawerProps {
 
 export function AppDrawer({ isOpen = false, onClose }: AppDrawerProps) {
   const location = useLocation();
+  const navigate = useNavigate();
   
   const notebooks = useStore(state => state.notebooks);
   const allEntries = useStore(state => state.entries);
+  const settings = useStore(state => state.settings);
+  const updateNotebook = useStore(state => state.updateNotebook);
+  const cascadeDeleteNotebook = useStore(state => state.cascadeDeleteNotebook);
+  const { notebookService } = useServices();
+
+  const { handleRenameNotebook, handleDeleteNotebook } = useAppDrawerController({
+    notebookService,
+    settings,
+    onUpdateNotebook: updateNotebook,
+    onCascadeDeleteNotebook: cascadeDeleteNotebook,
+    onNavigate: navigate
+  });
 
   // Close drawer on mobile when navigating
   useEffect(() => {
@@ -61,6 +76,8 @@ export function AppDrawer({ isOpen = false, onClose }: AppDrawerProps) {
                   key={notebook.id}
                   notebook={notebook}
                   notebookEntries={allEntries.filter(e => e.notebookId === notebook.id && !e.trashedAt)}
+                  onRename={(newName) => handleRenameNotebook(notebook, newName)}
+                  onDelete={() => handleDeleteNotebook(notebook, allEntries.filter(e => e.notebookId === notebook.id && !e.trashedAt))}
                 />
               ))}
 

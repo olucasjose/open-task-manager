@@ -1,21 +1,23 @@
-import type { Entry } from '../types';
+import type { Entry, AppSettings } from '../types';
 import type { EntryService } from '../services/EntryService';
-import { useStore } from '../store/useStore';
 
 interface UseTrashControllerProps {
   allEntries: Entry[];
   isLoaded: boolean;
   entryService: EntryService;
+  settings: AppSettings | null;
+  onUpdateEntry: (entry: Entry) => void;
+  onRemoveEntry: (id: string) => void;
 }
 
-export function useTrashController({ allEntries, isLoaded, entryService }: UseTrashControllerProps) {
+export function useTrashController({ allEntries, isLoaded, entryService, settings, onUpdateEntry, onRemoveEntry }: UseTrashControllerProps) {
 
   const entries = allEntries.filter(e => e.trashedAt);
 
   const handleRestore = async (entry: Entry) => {
     try {
       const updated = await entryService.restoreEntry(entry);
-      useStore.getState().updateEntry(updated);
+      onUpdateEntry(updated);
     } catch (err: any) {
       console.error(err);
       alert(`Erro ao restaurar: ${err?.message || JSON.stringify(err)}`);
@@ -23,11 +25,14 @@ export function useTrashController({ allEntries, isLoaded, entryService }: UseTr
   };
 
   const handleHardDelete = async (id: string) => {
-    const confirm = window.confirm("Deseja excluir permanentemente este item? Esta ação não pode ser desfeita.");
-    if (!confirm) return;
+    if (settings?.requireDeleteConfirm !== false) {
+      const confirm = window.confirm("Deseja excluir permanentemente este item? Esta ação não pode ser desfeita.");
+      if (!confirm) return;
+    }
+    
     try {
       await entryService.deleteEntry(id);
-      useStore.getState().removeEntry(id);
+      onRemoveEntry(id);
     } catch (err: any) {
       console.error(err);
       alert(`Erro ao excluir: ${err?.message || JSON.stringify(err)}`);
@@ -35,11 +40,14 @@ export function useTrashController({ allEntries, isLoaded, entryService }: UseTr
   };
 
   const handleEmptyTrash = async () => {
-    const confirm = window.confirm("Deseja esvaziar a lixeira? Todos os itens serão excluídos permanentemente.");
-    if (!confirm) return;
+    if (settings?.requireTrashConfirm !== false) {
+      const confirm = window.confirm("Deseja esvaziar a lixeira? Todos os itens serão excluídos permanentemente.");
+      if (!confirm) return;
+    }
+
     try {
       const deletedIds = await entryService.emptyTrash(entries);
-      deletedIds.forEach(id => useStore.getState().removeEntry(id));
+      deletedIds.forEach(id => onRemoveEntry(id));
     } catch (err: any) {
       console.error(err);
     }

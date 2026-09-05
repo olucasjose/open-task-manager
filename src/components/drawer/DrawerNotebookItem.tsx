@@ -1,20 +1,18 @@
 import { useState, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Book, X, Check, MoreVertical, Edit2, Trash2, ChevronRight, ChevronDown } from 'lucide-react';
 import type { Notebook, Entry } from '../../types';
 import { ENTRY_STRATEGIES } from '../../registry/EntryRegistry';
-import { useServices } from '../../hooks/useServices';
-import { useStore } from '../../store/useStore';
 
 interface DrawerNotebookItemProps {
   notebook: Notebook;
   notebookEntries: Entry[];
+  onRename: (newName: string) => void;
+  onDelete: () => void;
 }
 
-export function DrawerNotebookItem({ notebook, notebookEntries }: DrawerNotebookItemProps) {
-  const { notebookService } = useServices();
+export function DrawerNotebookItem({ notebook, notebookEntries, onRename, onDelete }: DrawerNotebookItemProps) {
   const location = useLocation();
-  const navigate = useNavigate();
   
   const [isExpanded, setIsExpanded] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -42,10 +40,9 @@ export function DrawerNotebookItem({ notebook, notebookEntries }: DrawerNotebook
           type="text"
           value={editName}
           onChange={(e) => setEditName(e.target.value)}
-          onKeyDown={async (e) => {
+          onKeyDown={(e) => {
             if (e.key === 'Enter' && editName.trim()) {
-              const updated = await notebookService.updateNotebook({ ...notebook, name: editName });
-              useStore.getState().updateNotebook(updated);
+              onRename(editName);
               setIsEditing(false);
             }
             if (e.key === 'Escape') setIsEditing(false);
@@ -55,10 +52,9 @@ export function DrawerNotebookItem({ notebook, notebookEntries }: DrawerNotebook
           className="flex-1 bg-transparent outline-none text-sm font-medium text-indigo-900 dark:text-indigo-100 placeholder:text-indigo-300 dark:placeholder:text-indigo-700 min-w-0"
         />
         <button 
-          onClick={async () => {
+          onClick={() => {
             if (editName.trim()) {
-              const updated = await notebookService.updateNotebook({ ...notebook, name: editName });
-              useStore.getState().updateNotebook(updated);
+              onRename(editName);
               setIsEditing(false);
             }
           }} 
@@ -127,15 +123,11 @@ export function DrawerNotebookItem({ notebook, notebookEntries }: DrawerNotebook
                  </button>
                  <div className="h-px bg-gray-100 dark:bg-gray-700 my-1" />
                  <button 
-                   onClick={async (e) => { 
+                   onClick={(e) => { 
                      e.preventDefault(); 
                      e.stopPropagation();
                      setIsMenuOpen(false);
-                     if(window.confirm(`Tem certeza que deseja excluir "${notebook.name}" e enviar seus itens para a lixeira?`)) {
-                       const { deletedNotebookId, trashedEntries } = await notebookService.deleteNotebookWithCascade(notebook.id, notebookEntries);
-                       useStore.getState().cascadeDeleteNotebook(deletedNotebookId, trashedEntries);
-                       navigate('/notebook/all');
-                     }
+                     onDelete();
                    }} 
                    className="flex items-center gap-3 w-full px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                  >

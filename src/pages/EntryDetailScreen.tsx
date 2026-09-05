@@ -17,6 +17,10 @@ export function EntryDetailScreen() {
 
   const allEntries = useStore(state => state.entries);
   const isLoaded = useStore(state => state.isLoaded);
+  const settings = useStore(state => state.settings);
+  const addEntry = useStore(state => state.addEntry);
+  const updateEntry = useStore(state => state.updateEntry);
+  const removeEntry = useStore(state => state.removeEntry);
   const { entryService } = useServices();
 
   const {
@@ -41,6 +45,10 @@ export function EntryDetailScreen() {
     allEntries,
     isLoaded,
     entryService,
+    settings,
+    onAddEntry: addEntry,
+    onUpdateEntry: updateEntry,
+    onRemoveEntry: removeEntry,
     onNavigateBack: () => navigate(-1)
   });
 

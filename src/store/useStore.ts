@@ -1,11 +1,13 @@
 import { create } from 'zustand';
-import type { Entry, Notebook } from '../types';
+import type { Entry, Notebook, AppSettings } from '../types';
 
 interface StoreState {
   entries: Entry[];
   notebooks: Notebook[];
+  settings: AppSettings | null;
   isLoaded: boolean;
   setStoreData: (entries: Entry[], notebooks: Notebook[]) => void;
+  setSettings: (settings: AppSettings) => void;
   
   addEntry: (entry: Entry) => void;
   updateEntry: (entry: Entry) => void;
@@ -21,8 +23,10 @@ interface StoreState {
 export const useStore = create<StoreState>((set) => ({
   entries: [],
   notebooks: [],
+  settings: null,
   isLoaded: false,
   setStoreData: (entries, notebooks) => set({ entries, notebooks, isLoaded: true }),
+  setSettings: (settings) => set({ settings }),
   
   addEntry: (entry) => set((state) => ({ entries: [entry, ...state.entries] })),
   updateEntry: (entry) => set((state) => ({ entries: state.entries.map((e) => (e.id === entry.id ? entry : e)) })),
