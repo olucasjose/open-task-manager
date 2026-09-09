@@ -45,6 +45,7 @@ export function AppDrawer({ isOpen = false, onClose }: AppDrawerProps) {
   return (
     <>
       <div 
+        data-testid="drawer-overlay"
         className={`fixed inset-0 bg-black/40 z-40 transition-opacity md:hidden backdrop-blur-sm ${isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}
         onClick={onClose}
       />

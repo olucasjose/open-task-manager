@@ -1,7 +1,6 @@
 import { useState, useMemo } from 'react';
 import type { Entry, Notebook } from '../types';
 import type { EntryService } from '../services/EntryService';
-import { useStore } from '../store/useStore';
 
 interface UseHomeControllerProps {
   notebookId?: string;
@@ -10,6 +9,7 @@ interface UseHomeControllerProps {
   isLoaded: boolean;
   entryService: EntryService;
   onNavigateToNewEntry: (url: string) => void;
+  onUpdateEntry: (entry: Entry) => void;
 }
 
 export function useHomeController({
@@ -18,7 +18,8 @@ export function useHomeController({
   notebooks,
   isLoaded,
   entryService,
-  onNavigateToNewEntry
+  onNavigateToNewEntry,
+  onUpdateEntry
 }: UseHomeControllerProps) {
   const [isFabMenuOpen, setIsFabMenuOpen] = useState(false);
 
@@ -46,7 +47,7 @@ export function useHomeController({
       const entry = entries.find(en => en.id === id);
       if (!entry) return;
       const updated = await entryService.updateEntry({ ...entry, isCompleted: !entry.isCompleted });
-      useStore.getState().updateEntry(updated);
+      onUpdateEntry(updated);
     } catch (err: any) {
       console.error(err);
       alert(`Erro ao atualizar item: ${err?.message || JSON.stringify(err)}`);

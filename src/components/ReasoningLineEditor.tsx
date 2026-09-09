@@ -160,6 +160,7 @@ export function ReasoningLineEditor({ stages, onChange, isEditing }: ReasoningLi
                 
                 {/* O Nó (Bolinha) */}
                 <button
+                  aria-label={`Alternar conclusão do estágio ${stage.title}`}
                   onClick={() => handleToggleCompletion(stage.id)}
                   disabled={isEditing}
                   className={`absolute -left-[35px] top-1 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all bg-white dark:bg-gray-900 ${
@@ -180,7 +181,11 @@ export function ReasoningLineEditor({ stages, onChange, isEditing }: ReasoningLi
                       onChange={(e) => handleUpdateStageTitle(stage.id, e.target.value)}
                       className="flex-1 bg-transparent resize-none outline-none font-medium text-gray-800 dark:text-gray-100 pointer-events-auto"
                     />
-                    <button onClick={() => handleDeleteStage(stage.id)} className="text-red-400 dark:text-red-500 hover:text-red-600 dark:hover:text-red-400 p-1 transition-colors pointer-events-auto">
+                    <button 
+                      aria-label={`Deletar estágio ${stage.title}`}
+                      onClick={() => handleDeleteStage(stage.id)} 
+                      className="text-red-400 dark:text-red-500 hover:text-red-600 dark:hover:text-red-400 p-1 transition-colors pointer-events-auto"
+                    >
                       <X className="w-5 h-5" />
                     </button>
                   </div>

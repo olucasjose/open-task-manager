@@ -74,6 +74,7 @@ export function SettingsScreen() {
               <label className="relative inline-flex items-center cursor-pointer">
                 <input 
                   type="checkbox" 
+                  aria-label="Alternar Modo Escuro"
                   className="sr-only peer"
                   checked={isDarkMode}
                   onChange={toggleTheme}
@@ -96,6 +97,7 @@ export function SettingsScreen() {
               <label className="relative inline-flex items-center cursor-pointer">
                 <input 
                   type="checkbox" 
+                  aria-label="Confirmar exclusão de itens e cadernos"
                   className="sr-only peer"
                   checked={settings?.requireDeleteConfirm ?? true}
                   onChange={toggleRequireDeleteConfirm}
@@ -112,6 +114,7 @@ export function SettingsScreen() {
               <label className="relative inline-flex items-center cursor-pointer">
                 <input 
                   type="checkbox" 
+                  aria-label="Confirmar exclusão ao esvaziar lixeira"
                   className="sr-only peer"
                   checked={settings?.requireTrashConfirm ?? true}
                   onChange={toggleRequireTrashConfirm}

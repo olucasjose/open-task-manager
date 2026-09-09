@@ -13,6 +13,7 @@ export function HomeScreen() {
   const entries = useStore(state => state.entries);
   const notebooks = useStore(state => state.notebooks);
   const isLoaded = useStore(state => state.isLoaded);
+  const updateEntry = useStore(state => state.updateEntry);
   const { entryService } = useServices();
 
   const {
@@ -29,7 +30,8 @@ export function HomeScreen() {
     notebooks,
     isLoaded,
     entryService,
-    onNavigateToNewEntry: (url) => navigate(url)
+    onNavigateToNewEntry: (url) => navigate(url),
+    onUpdateEntry: updateEntry
   });
 
   return (
