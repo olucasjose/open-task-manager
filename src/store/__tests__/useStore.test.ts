@@ -14,6 +14,8 @@ describe('useStore', () => {
     notebookId: 'nb1',
     title: 'Title',
     content: 'Content',
+    type: 'task',
+    isCompleted: false,
     createdAt: 1000,
     updatedAt: 1000,
   };
@@ -21,6 +23,7 @@ describe('useStore', () => {
   const mockNotebook: Notebook = {
     id: 'nb1',
     name: 'Notebook 1',
+    icon: 'lucide-folder',
     createdAt: 1000,
     updatedAt: 1000,
   };

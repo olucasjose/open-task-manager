@@ -33,7 +33,7 @@ describe('useAppDrawerController', () => {
   });
 
   it('should rename notebook', async () => {
-    const notebook = { id: 'nb1', name: 'Old', createdAt: 1, updatedAt: 1 };
+    const notebook = { id: 'nb1', name: 'Old', icon: 'lucide-folder', createdAt: 1, updatedAt: 1 };
     vi.mocked(mockNotebookService.updateNotebook).mockResolvedValue({ ...notebook, name: 'New' });
 
     const { result } = renderHook(() => useAppDrawerController(getProps()));
@@ -47,7 +47,7 @@ describe('useAppDrawerController', () => {
   });
 
   it('should not rename if name is empty or same', async () => {
-    const notebook = { id: 'nb1', name: 'Old', createdAt: 1, updatedAt: 1 };
+    const notebook = { id: 'nb1', name: 'Old', icon: 'lucide-folder', createdAt: 1, updatedAt: 1 };
     
     const { result } = renderHook(() => useAppDrawerController(getProps()));
 
@@ -60,8 +60,8 @@ describe('useAppDrawerController', () => {
   });
 
   it('should delete notebook after confirmation', async () => {
-    const notebook = { id: 'nb1', name: 'Old', createdAt: 1, updatedAt: 1 };
-    const notebookEntries = [{ id: 'e1', notebookId: 'nb1', title: 'T1', content: 'C1', createdAt: 1, updatedAt: 1 }];
+    const notebook = { id: 'nb1', name: 'Old', icon: 'lucide-folder', createdAt: 1, updatedAt: 1 };
+    const notebookEntries = [{ id: 'e1', notebookId: 'nb1', title: 'T1', content: 'C1', type: 'task' as const, isCompleted: false, createdAt: 1, updatedAt: 1 }];
     
     vi.mocked(window.confirm).mockReturnValue(true);
     vi.mocked(mockNotebookService.deleteNotebookWithCascade).mockResolvedValue({ deletedNotebookId: 'nb1', trashedEntries: [] });
@@ -79,7 +79,7 @@ describe('useAppDrawerController', () => {
   });
 
   it('should abort delete if not confirmed', async () => {
-    const notebook = { id: 'nb1', name: 'Old', createdAt: 1, updatedAt: 1 };
+    const notebook = { id: 'nb1', name: 'Old', icon: 'lucide-folder', createdAt: 1, updatedAt: 1 };
     
     vi.mocked(window.confirm).mockReturnValue(false);
 
@@ -94,7 +94,7 @@ describe('useAppDrawerController', () => {
   });
   
   it('should delete notebook without confirm if setting is false', async () => {
-    const notebook = { id: 'nb1', name: 'Old', createdAt: 1, updatedAt: 1 };
+    const notebook = { id: 'nb1', name: 'Old', icon: 'lucide-folder', createdAt: 1, updatedAt: 1 };
     
     vi.mocked(mockNotebookService.deleteNotebookWithCascade).mockResolvedValue({ deletedNotebookId: 'nb1', trashedEntries: [] });
 

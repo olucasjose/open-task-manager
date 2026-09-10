@@ -1,6 +1,6 @@
 import 'fake-indexeddb/auto';
 import { IDBFactory } from 'fake-indexeddb';
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { WebAdapter } from '../WebAdapter';
 
 describe('WebAdapter', () => {
@@ -15,7 +15,7 @@ describe('WebAdapter', () => {
   });
 
   it('creates and reads notebooks', async () => {
-    await adapter.createNotebook({ id: 'nb1', name: 'Work', createdAt: 1, updatedAt: 1 });
+    await adapter.createNotebook({ id: 'nb1', name: 'Work', createdAt: 1, updatedAt: 1, icon: 'lucide-folder' });
     const nbs = await adapter.getNotebooks();
     expect(nbs.length).toBe(1);
     expect(nbs[0].name).toBe('Work');
@@ -38,10 +38,10 @@ describe('WebAdapter', () => {
   });
 
   it('deletes notebook with cascade', async () => {
-    await adapter.createNotebook({ id: 'nb1', name: 'Work', createdAt: 1, updatedAt: 1 });
+    await adapter.createNotebook({ id: 'nb1', name: 'Work', createdAt: 1, updatedAt: 1, icon: 'lucide-folder' });
     await adapter.createEntry({ id: 'e1', notebookId: 'nb1', title: 'Task 1', type: 'task', isCompleted: false, createdAt: 1, updatedAt: 1 });
     
-    const trashedEntry = { id: 'e1', notebookId: 'nb1', title: 'Task 1', type: 'task', isCompleted: false, isTrashed: true, createdAt: 1, updatedAt: 2 };
+    const trashedEntry: import('../../../types').Entry = { id: 'e1', notebookId: 'nb1', title: 'Task 1', content: '', type: 'task', isCompleted: false, trashedAt: 2, createdAt: 1, updatedAt: 2 };
     
     await adapter.deleteNotebookWithCascade('nb1', [trashedEntry]);
     
@@ -49,6 +49,6 @@ describe('WebAdapter', () => {
     expect(nbs.length).toBe(0);
     
     const entries = await adapter.getEntries();
-    expect(entries[0].isTrashed).toBe(true);
+    expect(entries[0].trashedAt).toBeDefined();
   });
 });

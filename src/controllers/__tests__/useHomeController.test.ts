@@ -35,9 +35,9 @@ describe('useHomeController', () => {
 
   it('should filter visible entries (no trashed, match notebook)', () => {
     const entries: Entry[] = [
-      { id: '1', notebookId: 'nb1', title: 'A', content: 'A', createdAt: 1, updatedAt: 1, type: 'task' },
-      { id: '2', notebookId: 'nb2', title: 'B', content: 'B', createdAt: 1, updatedAt: 1, type: 'note' },
-      { id: '3', notebookId: 'nb1', title: 'C', content: 'C', createdAt: 1, updatedAt: 1, trashedAt: 123, type: 'task' },
+      { id: '1', notebookId: 'nb1', title: 'A', content: 'A', createdAt: 1, updatedAt: 1, type: 'task', isCompleted: false },
+      { id: '2', notebookId: 'nb2', title: 'B', content: 'B', createdAt: 1, updatedAt: 1, type: 'note', isCompleted: false },
+      { id: '3', notebookId: 'nb1', title: 'C', content: 'C', createdAt: 1, updatedAt: 1, trashedAt: 123, type: 'task', isCompleted: false },
     ];
     
     let { result } = renderHook(() => useHomeController(getProps({ entries })));
@@ -48,7 +48,7 @@ describe('useHomeController', () => {
   });
 
   it('should get correct notebook name', () => {
-    const notebooks: Notebook[] = [{ id: 'nb1', name: 'Work', createdAt: 1, updatedAt: 1 }];
+    const notebooks: Notebook[] = [{ id: 'nb1', name: 'Work', createdAt: 1, updatedAt: 1, icon: 'lucide-folder' }];
     
     let { result } = renderHook(() => useHomeController(getProps({ notebooks, notebookId: 'all' })));
     expect(result.current.notebookName).toBe('Todos os Itens');

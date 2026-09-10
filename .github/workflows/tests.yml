@@ -36,5 +36,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
+      - name: Check types
+        run: pnpm tsc -b
+
+      - name: Run linter
+        run: pnpm run lint
+
       - name: Run unit tests
         run: pnpm run test

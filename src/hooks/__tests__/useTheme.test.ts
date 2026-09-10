@@ -17,7 +17,7 @@ describe('useTheme', () => {
 
     Object.defineProperty(window, 'matchMedia', {
       writable: true,
-      value: vi.fn().mockImplementation(query => ({
+      value: vi.fn().mockImplementation((_query) => ({
         matches: false,
       })),
     });

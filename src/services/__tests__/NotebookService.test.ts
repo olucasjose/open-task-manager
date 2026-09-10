@@ -19,6 +19,7 @@ describe('NotebookService', () => {
   const mockNotebook: Notebook = {
     id: 'nb-1',
     name: 'Work',
+    icon: 'lucide-folder',
     createdAt: 1000,
     updatedAt: 1000,
   };
@@ -37,8 +38,8 @@ describe('NotebookService', () => {
 
   it('should delete a notebook with cascade marking entries as trashed', async () => {
     const notebookEntries: Entry[] = [
-      { id: 'e1', notebookId: 'nb-1', title: 'T1', content: 'C1', createdAt: 1, updatedAt: 1 },
-      { id: 'e2', notebookId: 'nb-1', title: 'T2', content: 'C2', createdAt: 2, updatedAt: 2 },
+      { id: 'e1', notebookId: 'nb-1', title: 'T1', content: 'C1', type: 'task', isCompleted: false, createdAt: 1, updatedAt: 1 },
+      { id: 'e2', notebookId: 'nb-1', title: 'T2', content: 'C2', type: 'task', isCompleted: false, createdAt: 2, updatedAt: 2 },
     ];
     
     const now = Date.now();

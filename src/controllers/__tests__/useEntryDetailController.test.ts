@@ -51,7 +51,7 @@ describe('useEntryDetailController', () => {
   });
 
   it('should load existing entry', () => {
-    const entry: Entry = { id: 'e1', title: 'T1', content: 'C1', type: 'task', createdAt: 1, updatedAt: 1 };
+    const entry: Entry = { id: 'e1', title: 'T1', content: 'C1', type: 'task', isCompleted: false, createdAt: 1, updatedAt: 1 };
     const { result } = renderHook(() => useEntryDetailController(getProps({ id: 'e1', allEntries: [entry] })));
     
     expect(result.current.isNew).toBe(false);
@@ -68,7 +68,7 @@ describe('useEntryDetailController', () => {
       result.current.setContent('Task Content');
     });
 
-    const savedEntry = { id: 'generated', title: 'New Task', content: 'Task Content', type: 'task' };
+    const savedEntry = { id: 'generated', title: 'New Task', content: 'Task Content', type: 'task', isCompleted: false };
     vi.mocked(mockEntryService.createEntry).mockResolvedValue(savedEntry as any);
 
     await act(async () => {
@@ -81,7 +81,7 @@ describe('useEntryDetailController', () => {
   });
 
   it('should handle save existing entry', async () => {
-    const entry: Entry = { id: 'e1', title: 'Old', content: 'C1', type: 'task', createdAt: 1, updatedAt: 1 };
+    const entry: Entry = { id: 'e1', title: 'Old', content: 'C1', type: 'task', isCompleted: false, createdAt: 1, updatedAt: 1 };
     const { result } = renderHook(() => useEntryDetailController(getProps({ id: 'e1', allEntries: [entry] })));
     
     act(() => {
@@ -100,7 +100,7 @@ describe('useEntryDetailController', () => {
   });
 
   it('should move to trash if not trashed', async () => {
-    const entry: Entry = { id: 'e1', title: 'T1', content: 'C1', type: 'task', createdAt: 1, updatedAt: 1 };
+    const entry: Entry = { id: 'e1', title: 'T1', content: 'C1', type: 'task', isCompleted: false, createdAt: 1, updatedAt: 1 };
     const { result } = renderHook(() => useEntryDetailController(getProps({ id: 'e1', allEntries: [entry] })));
     
     vi.mocked(window.confirm).mockReturnValue(true);
@@ -117,7 +117,7 @@ describe('useEntryDetailController', () => {
   });
 
   it('should hard delete if already trashed', async () => {
-    const entry: Entry = { id: 'e1', title: 'T1', content: 'C1', type: 'task', createdAt: 1, updatedAt: 1, trashedAt: 123 };
+    const entry: Entry = { id: 'e1', title: 'T1', content: 'C1', type: 'task', isCompleted: false, createdAt: 1, updatedAt: 1, trashedAt: 123 };
     const { result } = renderHook(() => useEntryDetailController(getProps({ id: 'e1', allEntries: [entry] })));
     
     vi.mocked(window.confirm).mockReturnValue(true);

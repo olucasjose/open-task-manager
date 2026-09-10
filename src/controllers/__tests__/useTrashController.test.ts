@@ -37,8 +37,8 @@ describe('useTrashController', () => {
 
   it('should filter only trashed entries', () => {
     const entries: Entry[] = [
-      { id: '1', title: 'A', content: 'A', createdAt: 1, updatedAt: 1, type: 'task' },
-      { id: '2', title: 'B', content: 'B', createdAt: 1, updatedAt: 1, trashedAt: 123, type: 'note' },
+      { id: '1', title: 'A', content: 'A', createdAt: 1, updatedAt: 1, type: 'task', isCompleted: false },
+      { id: '2', title: 'B', content: 'B', createdAt: 1, updatedAt: 1, trashedAt: 123, type: 'note', isCompleted: false },
     ];
 
     const { result } = renderHook(() => useTrashController(getProps({ allEntries: entries })));
@@ -48,7 +48,7 @@ describe('useTrashController', () => {
   });
 
   it('should handle restore entry', async () => {
-    const entry: Entry = { id: '2', title: 'B', content: 'B', createdAt: 1, updatedAt: 1, trashedAt: 123, type: 'note' };
+    const entry: Entry = { id: '2', title: 'B', content: 'B', createdAt: 1, updatedAt: 1, trashedAt: 123, type: 'note', isCompleted: false };
     
     vi.mocked(mockEntryService.restoreEntry).mockResolvedValue({ ...entry, trashedAt: undefined });
 
@@ -91,7 +91,7 @@ describe('useTrashController', () => {
 
   it('should handle empty trash with confirmation', async () => {
     const entries: Entry[] = [
-      { id: '1', title: 'A', content: 'A', createdAt: 1, updatedAt: 1, trashedAt: 123, type: 'task' },
+      { id: '1', title: 'A', content: 'A', createdAt: 1, updatedAt: 1, trashedAt: 123, type: 'task', isCompleted: false },
     ];
     
     vi.mocked(window.confirm).mockReturnValue(true);

@@ -21,6 +21,8 @@ describe('EntryService', () => {
     notebookId: 'nb-1',
     title: 'Test Entry',
     content: 'Content',
+    type: 'task',
+    isCompleted: false,
     createdAt: 1000,
     updatedAt: 1000,
   };

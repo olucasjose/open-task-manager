@@ -72,7 +72,7 @@ describe('SettingsScreen', () => {
   
   it('toggles settings when clicked', async () => {
     const user = userEvent.setup();
-    const { container } = render(
+    render(
       <MemoryRouter>
         <SettingsScreen />
       </MemoryRouter>
