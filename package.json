@@ -10,7 +10,9 @@
     "preview": "vite preview",
     "pretauri": "node scripts/set-version.js",
     "tauri": "tauri",
-    "test": "vitest run --environment jsdom"
+    "test": "vitest run --environment jsdom --exclude 'tests/**'",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
     "@capacitor-community/sqlite": "^8.1.1",
@@ -36,6 +38,7 @@
   },
   "devDependencies": {
     "@capacitor/cli": "^8.5.0",
+    "@playwright/test": "^1.63.0",
     "@tailwindcss/typography": "^0.5.20",
     "@tauri-apps/cli": "^2.11.4",
     "@testing-library/jest-dom": "^7.0.1",
