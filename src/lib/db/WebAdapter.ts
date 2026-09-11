@@ -19,10 +19,10 @@ export class WebAdapter implements DatabaseAdapter {
     });
   }
 
-  async getEntries(): Promise<Entry[]> {
+  async getEntries(includeDeleted = false): Promise<Entry[]> {
     if (!this.db) throw new Error('Database not initialized');
     const all = await this.db.getAll('entries');
-    return all.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    return all.filter(e => includeDeleted || !e.deleted).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
   }
 
   async createEntry(entry: Entry): Promise<void> {
@@ -42,13 +42,16 @@ export class WebAdapter implements DatabaseAdapter {
 
   async deleteEntry(id: string): Promise<void> {
     if (!this.db) throw new Error('Database not initialized');
-    await this.db.delete('entries', id);
+    const entry = await this.db.get('entries', id);
+    if (entry) {
+      await this.db.put('entries', { ...entry, deleted: true, updatedAt: Date.now() });
+    }
   }
 
-  async getNotebooks(): Promise<Notebook[]> {
+  async getNotebooks(includeDeleted = false): Promise<Notebook[]> {
     if (!this.db) throw new Error('Database not initialized');
     const all = await this.db.getAll('notebooks');
-    return all.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+    return all.filter(n => includeDeleted || !n.deleted).sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
   }
 
   async createNotebook(notebook: Notebook): Promise<void> {
@@ -68,16 +71,22 @@ export class WebAdapter implements DatabaseAdapter {
 
   async deleteNotebook(id: string): Promise<void> {
     if (!this.db) throw new Error('Database not initialized');
-    await this.db.delete('notebooks', id);
+    const notebook = await this.db.get('notebooks', id);
+    if (notebook) {
+      await this.db.put('notebooks', { ...notebook, deleted: true, updatedAt: Date.now() });
+    }
   }
 
   async deleteNotebookWithCascade(notebookId: string, trashedEntries: Entry[]): Promise<void> {
     if (!this.db) throw new Error('Database not initialized');
     const tx = this.db.transaction(['notebooks', 'entries'], 'readwrite');
-    await Promise.all([
-      tx.objectStore('notebooks').delete(notebookId),
-      ...trashedEntries.map(entry => tx.objectStore('entries').put({ ...entry, updatedAt: Date.now() }))
-    ]);
+    const notebook = await tx.objectStore('notebooks').get(notebookId);
+    if (notebook) {
+      await tx.objectStore('notebooks').put({ ...notebook, deleted: true, updatedAt: Date.now() });
+    }
+    await Promise.all(
+      trashedEntries.map(entry => tx.objectStore('entries').put({ ...entry, updatedAt: Date.now() }))
+    );
     await tx.done;
   }
 }

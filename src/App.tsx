@@ -7,6 +7,8 @@ import { HomeScreen } from './pages/HomeScreen';
 import { EntryDetailScreen } from './pages/EntryDetailScreen';
 import { TrashScreen } from './pages/TrashScreen';
 import { SettingsScreen } from './pages/SettingsScreen';
+import { SyncScreen } from './pages/SyncScreen';
+import { SyncCallbackScreen } from './pages/SyncCallbackScreen';
 import { MainLayout } from './layouts/MainLayout';
 import { DatabaseFacade } from './lib/db';
 import { DatabaseProvider } from './contexts/DatabaseContext';
@@ -93,6 +95,8 @@ function App() {
             <Route path="/notebook/:id" element={<HomeScreen />} />
             <Route path="/trash" element={<TrashScreen />} />
             <Route path="/settings" element={<SettingsScreen />} />
+            <Route path="/sync" element={<SyncScreen />} />
+            <Route path="/sync/callback" element={<SyncCallbackScreen />} />
             <Route path="/entry/:id" element={<EntryDetailScreen />} />
           </Route>
         </Routes>

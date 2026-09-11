@@ -9,7 +9,7 @@ export interface DatabaseAdapter {
   /**
    * Retrieves all entries from the database, ordered by creation date descending.
    */
-  getEntries(): Promise<Entry[]>;
+  getEntries(includeDeleted?: boolean): Promise<Entry[]>;
 
   /**
    * Inserts a new entry into the database.
@@ -29,7 +29,7 @@ export interface DatabaseAdapter {
   /**
    * Retrieves all notebooks from the database.
    */
-  getNotebooks(): Promise<Notebook[]>;
+  getNotebooks(includeDeleted?: boolean): Promise<Notebook[]>;
 
   /**
    * Inserts a new notebook into the database.

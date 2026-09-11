@@ -4,6 +4,8 @@ export interface Notebook {
   icon: string;
   createdAt: number;
   updatedAt: number;
+  syncedAt?: number;
+  deleted?: boolean;
 }
 
 export interface ReasoningLineStage {
@@ -24,9 +26,34 @@ export interface Entry {
   metadata?: any;
   notebookId?: string;
   trashedAt?: number;
+  syncedAt?: number;
+  deleted?: boolean;
 }
 
 export interface AppSettings {
   requireDeleteConfirm: boolean;
   requireTrashConfirm: boolean;
+}
+
+export interface SyncState {
+  provider: 'dropbox' | 'local' | null;
+  dropboxRefreshToken?: string;
+  lastSync?: number;
+}
+
+export interface SyncConflict {
+  id: string;
+  type: 'notebook' | 'entry';
+  name: string;
+  localUpdated: number;
+  cloudUpdated: number;
+}
+
+export interface SyncResult {
+  success: boolean;
+  conflicts?: SyncConflict[];
+  pushed?: number;
+  pulled?: number;
+  deletedLocal?: number;
+  error?: string;
 }

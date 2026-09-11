@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Trash2, Settings } from 'lucide-react';
+import { Trash2, Settings, CloudSync } from 'lucide-react';
 
 export function DrawerSystemMenu() {
   const location = useLocation();
@@ -25,6 +25,14 @@ export function DrawerSystemMenu() {
         >
           <Settings className="w-5 h-5" />
           Configurações
+        </Link>
+        <Link
+          to="/sync"
+          draggable={false}
+          className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors ${location.pathname === '/sync' ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800/50'}`}
+        >
+          <CloudSync className="w-5 h-5" />
+          Sincronização
         </Link>
       </div>
     </div>

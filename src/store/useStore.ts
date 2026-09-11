@@ -6,8 +6,10 @@ interface StoreState {
   notebooks: Notebook[];
   settings: AppSettings | null;
   isLoaded: boolean;
+  isSyncing: boolean;
   setStoreData: (entries: Entry[], notebooks: Notebook[]) => void;
   setSettings: (settings: AppSettings) => void;
+  setSyncing: (isSyncing: boolean) => void;
   
   addEntry: (entry: Entry) => void;
   updateEntry: (entry: Entry) => void;
@@ -25,8 +27,10 @@ export const useStore = create<StoreState>((set) => ({
   notebooks: [],
   settings: null,
   isLoaded: false,
+  isSyncing: false,
   setStoreData: (entries, notebooks) => set({ entries, notebooks, isLoaded: true }),
   setSettings: (settings) => set({ settings }),
+  setSyncing: (isSyncing) => set({ isSyncing }),
   
   addEntry: (entry) => set((state) => ({ entries: [entry, ...state.entries] })),
   updateEntry: (entry) => set((state) => ({ entries: state.entries.map((e) => (e.id === entry.id ? entry : e)) })),
