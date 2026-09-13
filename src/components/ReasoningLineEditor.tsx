@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { generateId } from '../lib/id';
 import type { ReasoningLineStage } from '../types';
 import { Plus, X, Check, GripVertical } from 'lucide-react';
 import TextareaAutosize from 'react-textarea-autosize';
@@ -104,7 +105,7 @@ export function ReasoningLineEditor({ stages, onChange, isEditing }: ReasoningLi
   const handleAddStage = () => {
     if (!newStageTitle.trim()) return;
     const newStage: ReasoningLineStage = {
-      id: Date.now().toString(),
+      id: generateId(),
       title: newStageTitle.trim(),
       isCompleted: false,
     };

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { generateId } from '../lib/id';
 import type { Entry, AppSettings } from '../types';
 import { ENTRY_STRATEGIES } from '../registry/EntryRegistry';
 import type { EntryService } from '../services/EntryService';
@@ -61,7 +62,7 @@ export function useEntryDetailController({
     try {
       if (isNew) {
         const newEntry: Entry = {
-          id: Date.now().toString(),
+          id: generateId(),
           type: initialType,
           title: title || ENTRY_STRATEGIES[initialType]?.defaultTitle || 'Sem Título',
           content,

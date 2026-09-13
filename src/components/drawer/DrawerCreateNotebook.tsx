@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { generateId } from '../../lib/id';
 import { Folder, Check, X, Plus } from 'lucide-react';
 import type { Notebook } from '../../types';
 import { useServices } from '../../hooks/useServices';
@@ -20,7 +21,7 @@ export function DrawerCreateNotebook({ onCreated }: DrawerCreateNotebookProps) {
     }
     try {
       const newNotebook: Notebook = {
-        id: Date.now().toString(),
+        id: generateId(),
         name: newNotebookName.trim(),
         icon: 'Book',
         createdAt: Date.now(),
